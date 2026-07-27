@@ -468,7 +468,10 @@ export function describeTimeFilter(
     case 'era': {
       const era = eras.find((candidate) => candidate.id === filter.eraId);
       return era
-        ? { title: era.name, blurb: era.blurb }
+        ? {
+            title: era.name,
+            blurb: `${era.blurb} The shaded zone on the map is an illustrative sketch of the city's built-up area in this period, not a surveyed boundary.`,
+          }
         : { title: 'All of Prague', blurb: '' };
     }
     case 'century':

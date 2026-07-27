@@ -13,6 +13,7 @@ import EventPanel from './components/EventPanel';
 import IconRail from './components/IconRail';
 import ListFallback from './components/ListFallback';
 import MapCanvas from './components/MapCanvas';
+import { getEraZoneFeature } from './lib/eraZones';
 import Splitter from './components/Splitter';
 import EraBands from './components/Timeline/EraBands';
 import Scrubber from './components/Timeline/Scrubber';
@@ -266,6 +267,7 @@ export default function App() {
   const currentEra = getCurrentEra(eras, navigation.year);
   const visibleEvents = getVisibleEvents(events, timeFilter);
   const windowNote = describeTimeFilter(timeFilter, eras);
+  const activeEraZone = timeFilter.kind === 'era' ? getEraZoneFeature(timeFilter.eraId) : null;
   const eventGroups = getEventsByEra(eras, visibleEvents);
   const panelEvent = events.find((event) => event.id === panelEventId) ?? null;
   const panelEra = panelEvent ? eras.find((era) => era.id === panelEvent.eraId) ?? null : null;
@@ -629,6 +631,7 @@ export default function App() {
                       key={mapRetryKey}
                       onMapReady={setMap}
                       onMapUnavailable={reportUnsupported}
+                      activeEraZone={activeEraZone}
                     />
                     {map ? (
                       <EventMarkers
