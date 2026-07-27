@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 
 import type { Era, StoryEvent } from '../data/schema';
+import GalleryLightbox from './GalleryLightbox';
 
 type EventPanelProps = {
   event: StoryEvent | null;
@@ -18,9 +19,11 @@ export default function EventPanel({
   onClose,
 }: EventPanelProps) {
   const [imageIndex, setImageIndex] = useState(0);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
 
   useEffect(() => {
     setImageIndex(0);
+    setLightboxOpen(false);
   }, [event?.id]);
 
   const imageCount = event?.images.length ?? 0;
@@ -114,12 +117,19 @@ export default function EventPanel({
               <div className="mt-3 space-y-4">
                 <figure className="overflow-hidden rounded-3xl border border-slate-200 bg-white/80">
                   <div className="relative">
-                    <img
-                      src={`${import.meta.env.BASE_URL}${activeImage.src.replace(/^\//, '')}`}
-                      alt={activeImage.alt}
-                      loading="lazy"
-                      className="h-56 w-full object-cover"
-                    />
+                    <button
+                      type="button"
+                      onClick={() => setLightboxOpen(true)}
+                      aria-label={`Enlarge image: ${activeImage.caption}`}
+                      className="group block w-full cursor-zoom-in focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
+                    >
+                      <img
+                        src={`${import.meta.env.BASE_URL}${activeImage.src.replace(/^\//, '')}`}
+                        alt={activeImage.alt}
+                        loading="lazy"
+                        className="h-56 w-full object-cover transition group-hover:brightness-90"
+                      />
+                    </button>
                     {imageCount > 1 ? (
                       <>
                         <button
@@ -213,6 +223,15 @@ export default function EventPanel({
           </p>
         </div>
       )}
+
+      {lightboxOpen && event && activeImage ? (
+        <GalleryLightbox
+          images={event.images}
+          index={imageIndex}
+          onIndexChange={setImageIndex}
+          onClose={() => setLightboxOpen(false)}
+        />
+      ) : null}
     </aside>
   );
 }
