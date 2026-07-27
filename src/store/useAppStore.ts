@@ -7,7 +7,17 @@ const LAYOUT_STORAGE_KEY = 'city-storyline-layout';
 export const MIN_RIGHT_COLUMN_WIDTH = 18 * 16;
 export const MAX_RIGHT_COLUMN_WIDTH_STACKED = 40 * 16;
 export const MAX_RIGHT_COLUMN_WIDTH_COLUMNS = 64 * 16;
-export const DEFAULT_RIGHT_COLUMN_WIDTH = 22 * 16;
+/**
+ * The right column's width is stored as a ratio of the available main-region
+ * width, not a raw pixel value — the same pattern already used for
+ * rightColumnSplit. A pixel value that stayed fixed while the window resized
+ * meant the panel claimed a larger and larger share of a shrinking window
+ * (measured: 32% of a 1440px window grew to 55% of a 900px window) instead of
+ * holding its proportion. MIN/MAX_RIGHT_COLUMN_WIDTH remain absolute pixel
+ * floors/ceilings applied on top of the ratio, so the panel stays usable at
+ * both extremes rather than shrinking to unreadable or growing to absurd.
+ */
+export const DEFAULT_RIGHT_COLUMN_WIDTH_RATIO = 0.25;
 export const MIN_BOTTOM_REGION_HEIGHT = 6 * 16;
 export const DEFAULT_BOTTOM_REGION_HEIGHT = 0;
 export const DEFAULT_RIGHT_COLUMN_SPLIT = 0.5;
@@ -49,7 +59,7 @@ export type PanelVisibility = Record<PanelId, boolean>;
 
 export type LayoutState = {
   panels: PanelVisibility;
-  rightColumnWidth: number;
+  rightColumnWidthRatio: number;
   bottomRegionHeight: number;
   rightColumnSplit: number;
   rightColumnOrientation: 'stacked' | 'columns';
@@ -66,7 +76,7 @@ const defaultPanels: PanelVisibility = {
 
 const defaultLayoutState: LayoutState = {
   panels: defaultPanels,
-  rightColumnWidth: DEFAULT_RIGHT_COLUMN_WIDTH,
+  rightColumnWidthRatio: DEFAULT_RIGHT_COLUMN_WIDTH_RATIO,
   bottomRegionHeight: DEFAULT_BOTTOM_REGION_HEIGHT,
   rightColumnSplit: DEFAULT_RIGHT_COLUMN_SPLIT,
   rightColumnOrientation: DEFAULT_RIGHT_COLUMN_ORIENTATION,
@@ -74,6 +84,10 @@ const defaultLayoutState: LayoutState = {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
+}
+
+function clampRatio(value: number): number {
+  return Math.min(Math.max(value, 0), 1);
 }
 
 function parseStoredLayout(): LayoutState {
@@ -93,7 +107,7 @@ function parseStoredLayout(): LayoutState {
     }
 
     const panels = parsed.panels;
-    const rightColumnWidth = parsed.rightColumnWidth;
+    const rightColumnWidthRatio = parsed.rightColumnWidthRatio;
     const bottomRegionHeight = parsed.bottomRegionHeight;
     const rightColumnSplit = parsed.rightColumnSplit;
     const rightColumnOrientation = parsed.rightColumnOrientation;
@@ -104,10 +118,10 @@ function parseStoredLayout(): LayoutState {
       typeof panels.chapters !== 'boolean' ||
       typeof panels.eventList !== 'boolean' ||
       typeof panels.description !== 'boolean' ||
-      typeof rightColumnWidth !== 'number' ||
-      !Number.isFinite(rightColumnWidth) ||
-      rightColumnWidth < MIN_RIGHT_COLUMN_WIDTH ||
-      rightColumnWidth > MAX_RIGHT_COLUMN_WIDTH_COLUMNS ||
+      typeof rightColumnWidthRatio !== 'number' ||
+      !Number.isFinite(rightColumnWidthRatio) ||
+      rightColumnWidthRatio < 0.05 ||
+      rightColumnWidthRatio > 0.95 ||
       typeof bottomRegionHeight !== 'number' ||
       !Number.isFinite(bottomRegionHeight) ||
       bottomRegionHeight < 0 ||
@@ -128,7 +142,7 @@ function parseStoredLayout(): LayoutState {
         eventList: panels.eventList,
         description: panels.description,
       },
-      rightColumnWidth,
+      rightColumnWidthRatio,
       bottomRegionHeight,
       rightColumnSplit,
       rightColumnOrientation,
@@ -160,7 +174,7 @@ type AppStore = {
   showPanel: (panelId: PanelId) => void;
   hidePanel: (panelId: PanelId) => void;
   resetLayout: () => void;
-  setRightColumnWidth: (width: number) => void;
+  setRightColumnWidthRatio: (ratio: number) => void;
   setBottomRegionHeight: (height: number) => void;
   setRightColumnSplit: (ratio: number) => void;
   setRightColumnOrientation: (orientation: LayoutState['rightColumnOrientation']) => void;
@@ -353,11 +367,11 @@ export const useAppStore = create<AppStore>((set, get) => ({
     }));
     persistLayout(get().layout);
   },
-  setRightColumnWidth(width) {
+  setRightColumnWidthRatio(ratio) {
     set((state) => ({
       layout: {
         ...state.layout,
-        rightColumnWidth: width,
+        rightColumnWidthRatio: clampRatio(ratio),
       },
     }));
     persistLayout(get().layout);
@@ -381,14 +395,15 @@ export const useAppStore = create<AppStore>((set, get) => ({
     persistLayout(get().layout);
   },
   setRightColumnOrientation(orientation) {
+    // No width adjustment needed here: rightColumnWidthRatio is dimensionless
+    // and gets re-clamped against the current orientation's absolute max at
+    // render time regardless (see getClampedRightColumnWidth in App.tsx), so
+    // there is no "stored value springs back oversized" case to guard against
+    // the way there was when width was stored in raw pixels.
     set((state) => ({
       layout: {
         ...state.layout,
         rightColumnOrientation: orientation,
-        rightColumnWidth:
-          orientation === 'stacked'
-            ? Math.min(state.layout.rightColumnWidth, MAX_RIGHT_COLUMN_WIDTH_STACKED)
-            : state.layout.rightColumnWidth,
       },
     }));
     persistLayout(get().layout);

@@ -12,7 +12,7 @@ export default function WindowNote({
   totalCount,
 }: WindowNoteProps) {
   return (
-    <div className="flex items-baseline gap-x-4 border-b border-slate-200/70 px-5 pb-2 pt-2.5">
+    <div className="flex min-w-0 items-baseline gap-x-4 border-b border-slate-200/70 px-5 pb-2 pt-2.5">
       <h2 className="shrink-0 font-display text-base leading-tight text-slate-950">
         {title}
       </h2>

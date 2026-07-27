@@ -130,6 +130,21 @@ function getClampedRightColumnWidth(
   return clamp(rawWidth, minWidth, resolvedMaxWidth);
 }
 
+/**
+ * The right column's width is a ratio of the available width, not a stored
+ * pixel value — see the comment on DEFAULT_RIGHT_COLUMN_WIDTH_RATIO in
+ * useAppStore.ts. This is what makes the panel hold its proportion as the
+ * window resizes rather than claiming a growing share of a shrinking window.
+ */
+function getRightColumnWidthFromRatio(
+  ratio: number,
+  availableWidth: number,
+  minWidth: number,
+  maxAllowedWidth: number,
+): number {
+  return getClampedRightColumnWidth(ratio * availableWidth, availableWidth, minWidth, maxAllowedWidth);
+}
+
 function getClampedBottomRegionHeight(
   rawHeight: number,
   naturalHeight: number,
@@ -236,7 +251,7 @@ export default function App() {
     closePanel,
     togglePanel,
     resetLayout,
-    setRightColumnWidth,
+    setRightColumnWidthRatio,
     setBottomRegionHeight,
     setRightColumnSplit,
     setRightColumnOrientation,
@@ -289,8 +304,8 @@ export default function App() {
       : MAX_RIGHT_COLUMN_WIDTH_STACKED;
 
   const rightColumnWidth = showRightColumn
-    ? getClampedRightColumnWidth(
-        layout.rightColumnWidth,
+    ? getRightColumnWidthFromRatio(
+        layout.rightColumnWidthRatio,
         mainRegionSize.width,
         rightColumnMinWidth,
         rightColumnMaxWidth,
@@ -401,39 +416,41 @@ export default function App() {
   const handleVerticalDrag = useCallback(
     (clientX: number) => {
       const rect = mainRegionRef.current?.getBoundingClientRect();
-      if (!rect) {
+      if (!rect || rect.width <= 0) {
         return;
       }
 
-      setRightColumnWidth(
-        getClampedRightColumnWidth(
-          rect.right - clientX,
-          rect.width,
-          rightColumnMinWidth,
-          rightColumnMaxWidth,
-        ),
+      const clampedWidth = getClampedRightColumnWidth(
+        rect.right - clientX,
+        rect.width,
+        rightColumnMinWidth,
+        rightColumnMaxWidth,
       );
+      setRightColumnWidthRatio(clampedWidth / rect.width);
     },
-    [rightColumnMaxWidth, rightColumnMinWidth, setRightColumnWidth],
+    [rightColumnMaxWidth, rightColumnMinWidth, setRightColumnWidthRatio],
   );
 
   const handleVerticalStep = useCallback(
     (delta: number) => {
-      setRightColumnWidth(
-        getClampedRightColumnWidth(
-          layout.rightColumnWidth - delta,
-          mainRegionSize.width,
-          rightColumnMinWidth,
-          rightColumnMaxWidth,
-        ),
+      if (mainRegionSize.width <= 0) {
+        return;
+      }
+
+      const clampedWidth = getClampedRightColumnWidth(
+        rightColumnWidth - delta,
+        mainRegionSize.width,
+        rightColumnMinWidth,
+        rightColumnMaxWidth,
       );
+      setRightColumnWidthRatio(clampedWidth / mainRegionSize.width);
     },
     [
-      layout.rightColumnWidth,
+      rightColumnWidth,
       mainRegionSize.width,
       rightColumnMaxWidth,
       rightColumnMinWidth,
-      setRightColumnWidth,
+      setRightColumnWidthRatio,
     ],
   );
 
@@ -622,8 +639,8 @@ export default function App() {
         ) : null}
 
         <div ref={setWorkspaceRef} className="flex min-h-0 flex-1 gap-3">
-          <div className="flex min-h-0 flex-1 flex-col">
-            <div ref={setMainRegionRef} className="flex min-h-0 flex-1">
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+            <div ref={setMainRegionRef} className="flex min-h-0 min-w-0 flex-1">
               {desktopMapMode ? (
                 <>
                   <div className="min-h-0 min-w-0 flex-1">
@@ -782,13 +799,13 @@ export default function App() {
                 <div
                   style={desktopMapMode ? { height: bottomRegionHeight } : undefined}
                   className={[
-                    'min-h-0 overflow-y-auto',
+                    'min-h-0 min-w-0 overflow-y-auto overflow-x-hidden',
                     desktopMapMode ? 'shrink-0' : 'mt-3',
                   ].join(' ')}
                 >
-                  <div ref={setBottomMeasureRef} className="flex min-h-0 flex-col gap-2">
+                  <div ref={setBottomMeasureRef} className="flex min-h-0 min-w-0 flex-col gap-2">
                     {panelVisibility.timeline ? (
-                      <div className="rounded-[1.5rem] border border-white/60 bg-[#f8f5ef]/85 shadow-panel backdrop-blur">
+                      <div className="min-w-0 rounded-[1.5rem] border border-white/60 bg-[#f8f5ef]/85 shadow-panel backdrop-blur">
                         <WindowNote
                           title={windowNote.title}
                           blurb={windowNote.blurb}

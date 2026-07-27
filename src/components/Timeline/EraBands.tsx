@@ -24,7 +24,7 @@ export default function EraBands({
   const allActive = timeFilter.kind === 'all';
 
   return (
-    <div className="rounded-[1.5rem] border border-white/60 bg-[#f8f5ef]/75 p-2 shadow-panel backdrop-blur">
+    <div className="min-w-0 rounded-[1.5rem] border border-white/60 bg-[#f8f5ef]/75 p-2 shadow-panel backdrop-blur">
       <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-5 lg:grid-cols-9">
         <button
           type="button"
