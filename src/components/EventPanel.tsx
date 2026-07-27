@@ -1,3 +1,5 @@
+import { useEffect, useState } from 'react';
+
 import type { Era, StoryEvent } from '../data/schema';
 
 type EventPanelProps = {
@@ -15,6 +17,18 @@ export default function EventPanel({
   era,
   onClose,
 }: EventPanelProps) {
+  const [imageIndex, setImageIndex] = useState(0);
+
+  useEffect(() => {
+    setImageIndex(0);
+  }, [event?.id]);
+
+  const imageCount = event?.images.length ?? 0;
+  const activeImage =
+    event && imageCount > 0
+      ? event.images[Math.min(imageIndex, imageCount - 1)]
+      : null;
+
   return (
     <aside className="flex h-full min-h-0 flex-col overflow-hidden rounded-[2rem] border border-white/60 bg-[#f8f5ef]/95 shadow-panel backdrop-blur">
       <div className="flex items-start justify-between border-b border-slate-200/80 px-6 pb-4 pt-5">
@@ -96,49 +110,87 @@ export default function EventPanel({
             <h3 className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
               Gallery
             </h3>
-            {event.images.length > 0 ? (
+            {activeImage ? (
               <div className="mt-3 space-y-4">
-                {event.images.map((image) => (
-                  <figure
-                    key={image.src}
-                    className="overflow-hidden rounded-3xl border border-slate-200 bg-white/80"
-                  >
+                <figure className="overflow-hidden rounded-3xl border border-slate-200 bg-white/80">
+                  <div className="relative">
                     <img
-                      src={`${import.meta.env.BASE_URL}${image.src.replace(/^\//, '')}`}
-                      alt={image.alt}
+                      src={`${import.meta.env.BASE_URL}${activeImage.src.replace(/^\//, '')}`}
+                      alt={activeImage.alt}
                       loading="lazy"
                       className="h-56 w-full object-cover"
                     />
-                    <figcaption className="space-y-2 px-4 py-4 text-sm leading-6 text-slate-700">
-                      <p className="text-slate-900">{image.caption}</p>
-                      <p>
-                        {image.title} by {image.author}. {image.license}. Modified: {image.modified}.
-                      </p>
-                      <p className="flex flex-wrap gap-3">
-                        <a
-                          href={image.sourceUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="font-semibold text-slate-900 underline decoration-slate-300 underline-offset-4"
+                    {imageCount > 1 ? (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => setImageIndex((current) => Math.max(0, current - 1))}
+                          aria-label="Previous image"
+                          disabled={imageIndex === 0}
+                          className="absolute left-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/70 bg-[#f8f5ef]/90 text-2xl leading-none text-slate-900 shadow transition hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 disabled:cursor-not-allowed disabled:opacity-45"
                         >
-                          Source
-                        </a>
-                        <a
-                          href={image.licenseUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="font-semibold text-slate-900 underline decoration-slate-300 underline-offset-4"
+                          ‹
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setImageIndex((current) => Math.min(imageCount - 1, current + 1))
+                          }
+                          aria-label="Next image"
+                          disabled={imageIndex === imageCount - 1}
+                          className="absolute right-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/70 bg-[#f8f5ef]/90 text-2xl leading-none text-slate-900 shadow transition hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 disabled:cursor-not-allowed disabled:opacity-45"
                         >
-                          License
-                        </a>
-                      </p>
-                    </figcaption>
-                  </figure>
-                ))}
+                          ›
+                        </button>
+                        <div className="absolute bottom-3 right-3 rounded-full bg-slate-900/80 px-3 py-1 text-xs font-semibold tracking-[0.2em] text-[#f8f5ef]">
+                          {imageIndex + 1} / {imageCount}
+                        </div>
+                      </>
+                    ) : null}
+                  </div>
+                  <figcaption className="space-y-2 px-4 py-4 text-sm leading-6 text-slate-700">
+                    <p className="text-slate-900">{activeImage.caption}</p>
+                    <p>
+                      {activeImage.title} by {activeImage.author}. {activeImage.license}. Modified: {activeImage.modified}.
+                    </p>
+                    <p className="flex flex-wrap gap-3">
+                      <a
+                        href={activeImage.sourceUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-semibold text-slate-900 underline decoration-slate-300 underline-offset-4"
+                      >
+                        Source
+                      </a>
+                      <a
+                        href={activeImage.licenseUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-semibold text-slate-900 underline decoration-slate-300 underline-offset-4"
+                      >
+                        License
+                      </a>
+                    </p>
+                  </figcaption>
+                </figure>
+                {imageCount > 1 ? (
+                  <div className="flex items-center justify-center gap-2">
+                    {event.images.map((image, index) => (
+                      <span
+                        key={image.src}
+                        aria-hidden="true"
+                        className={[
+                          'h-2.5 w-2.5 rounded-full',
+                          index === imageIndex ? 'bg-slate-900' : 'bg-slate-300',
+                        ].join(' ')}
+                      />
+                    ))}
+                  </div>
+                ) : null}
               </div>
             ) : (
               <p className="mt-3 rounded-2xl border border-dashed border-slate-300 bg-white/70 px-4 py-4 text-sm text-slate-600">
-                No images ship in Tier-0.
+                No images available for this event yet.
               </p>
             )}
           </section>

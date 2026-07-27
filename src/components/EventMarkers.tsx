@@ -15,6 +15,8 @@ type MarkerRecord = {
   popup: Popup;
   popupRoot: Root;
   button: HTMLButtonElement;
+  tooltipTitle: HTMLSpanElement;
+  tooltipYear: HTMLSpanElement;
 };
 
 type EventMarkersProps = {
@@ -66,6 +68,21 @@ export default function EventMarkers({
       button.type = 'button';
       button.setAttribute('aria-label', `${event.title}, ${event.yearStart}`);
 
+      const tooltip = document.createElement('span');
+      tooltip.className = 'story-marker-tooltip';
+      tooltip.setAttribute('aria-hidden', 'true');
+
+      const tooltipTitle = document.createElement('span');
+      tooltipTitle.className = 'story-marker-tooltip__title';
+      tooltipTitle.textContent = event.title;
+
+      const tooltipYear = document.createElement('span');
+      tooltipYear.className = 'story-marker-tooltip__year';
+      tooltipYear.textContent = `${event.yearStart}`;
+
+      tooltip.append(tooltipTitle, tooltipYear);
+      button.append(tooltip);
+
       const popupNode = document.createElement('div');
       const popupRoot = createRoot(popupNode);
       const popup = new maplibregl.Popup({
@@ -92,6 +109,8 @@ export default function EventMarkers({
         popup,
         popupRoot,
         button,
+        tooltipTitle,
+        tooltipYear,
       });
     }
 
@@ -125,6 +144,8 @@ export default function EventMarkers({
       // MapLibre stamps its own generic aria-label onto a custom marker element,
       // so re-apply ours or every pin announces as "Map marker".
       record.button.setAttribute('aria-label', `${event.title}, ${event.yearStart}`);
+      record.tooltipTitle.textContent = event.title;
+      record.tooltipYear.textContent = `${event.yearStart}`;
 
       // Belt and braces: `display` cannot be defeated by a CSS specificity clash the
       // way an opacity-only hide can, so an out-of-window pin is genuinely gone.
