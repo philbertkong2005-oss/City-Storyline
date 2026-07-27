@@ -26,24 +26,22 @@ type EventMarkersProps = {
   onReadMore: (event: StoryEvent) => void;
 };
 
-function markerClassName(event: StoryEvent, state: ReturnType<typeof getEventMarkerState>, selected: boolean): string {
-  const baseClasses = ['story-marker'];
-
-  if (state === 'active') {
-    baseClasses.push('story-marker--active');
-  } else {
-    baseClasses.push('story-marker--hidden');
-  }
-
-  if (event.locationPrecision !== 'exact') {
-    baseClasses.push('story-marker--dashed');
-  }
-
-  if (selected) {
-    baseClasses.push('story-marker--selected');
-  }
-
-  return baseClasses.join(' ');
+/**
+ * Toggle only our own classes. MapLibre adds `maplibregl-marker` to the element it
+ * is given, and that class carries `position:absolute; left:0; top:0` — assigning
+ * `element.className` wholesale strips it and drops every pin into normal flow.
+ */
+function applyMarkerClasses(
+  button: HTMLButtonElement,
+  event: StoryEvent,
+  state: ReturnType<typeof getEventMarkerState>,
+  selected: boolean,
+): void {
+  button.classList.add('story-marker');
+  button.classList.toggle('story-marker--active', state === 'active');
+  button.classList.toggle('story-marker--hidden', state !== 'active');
+  button.classList.toggle('story-marker--dashed', event.locationPrecision !== 'exact');
+  button.classList.toggle('story-marker--selected', selected);
 }
 
 export default function EventMarkers({
@@ -115,16 +113,18 @@ export default function EventMarkers({
       }
 
       const state = getEventMarkerState(event, timeFilter);
-      record.button.className = markerClassName(
-        event,
-        state,
-        selectedEventId === event.id,
-      );
+      const active = state === 'active';
+
+      applyMarkerClasses(record.button, event, state, selectedEventId === event.id);
+
+      // Belt and braces: `display` cannot be defeated by a CSS specificity clash the
+      // way an opacity-only hide can, so an out-of-window pin is genuinely gone.
+      record.button.style.display = active ? '' : 'none';
       // Hidden markers must not stay in the tab order, or keyboard users land on
       // pins they cannot see.
-      record.button.tabIndex = state === 'active' ? 0 : -1;
-      record.button.setAttribute('aria-hidden', state === 'active' ? 'false' : 'true');
-      if (state !== 'active') {
+      record.button.tabIndex = active ? 0 : -1;
+      record.button.setAttribute('aria-hidden', active ? 'false' : 'true');
+      if (!active) {
         record.popup.remove();
       }
       record.popupRoot.render(
