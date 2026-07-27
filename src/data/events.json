@@ -13,8 +13,24 @@
     },
     "wikipediaUrl": "https://en.wikipedia.org/wiki/Prague_Castle",
     "summary": "A fortified seat arose at Prague Castle around 880 and became the enduring center of Bohemian power.",
-    "body": [],
-    "images": []
+    "body": [
+      "Prague Castle began as a fortified settlement on a ridge above the Vltava around 880, founded by Prince Bořivoj I of the Přemyslid dynasty. Wooden ramparts enclosed a small community of the ruling family and its retinue; the stone churches and palaces that define the castle today came much later, built up in layers across a thousand years.",
+      "Over the following centuries it grew into the seat of Bohemian dukes and kings, then Holy Roman Emperors, and eventually the Czechoslovak and Czech presidency. Few seats of power anywhere in Europe have stayed in continuous use for as long, through the Přemyslids, the Habsburgs, two world wars, and four decades of communist rule.",
+      "It remains the political heart of the Czech Republic today, housing the president's offices alongside St Vitus Cathedral, the Old Royal Palace, and one of the largest ancient castle complexes in the world."
+    ],
+    "images": [
+      {
+        "src": "/images/prague-castle-founded.jpg",
+        "alt": "Panoramic view of Prague Castle above the Vltava river",
+        "caption": "Prague September 2016-6a",
+        "author": "Alvesgaspar",
+        "title": "Prague September 2016-6a",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Prague_September_2016-6a.jpg",
+        "modified": "false"
+      }
+    ]
   },
   {
     "id": "vysehrad-royal-seat",
@@ -30,8 +46,24 @@
     },
     "wikipediaUrl": "https://en.wikipedia.org/wiki/Vy%C5%A1ehrad",
     "summary": "Vratislaus II established Vysehrad as a principal royal residence in the later 11th century.",
-    "body": [],
-    "images": []
+    "body": [
+      "Vyšehrad, a rocky outcrop above the Vltava south of the Old Town, was already fortified when Prince Vratislaus II made it his principal residence around 1070, briefly rivalling Prague Castle as the seat of Bohemian power and the site of his coronation as the first Bohemian king.",
+      "Legend later cast Vyšehrad as older still — the mythical princess Libuše was said to have prophesied Prague's greatness from its cliffs, founding the city and the Přemyslid dynasty itself. Its status as a royal residence faded within a century as power shifted permanently back to Prague Castle.",
+      "Today it is a quiet park and cemetery holding many of the Czech nation's most honoured figures, among them the composer Antonín Dvořák, and it offers one of the best panoramic views over the Vltava valley."
+    ],
+    "images": [
+      {
+        "src": "/images/vysehrad-royal-seat.jpg",
+        "alt": "The Basilica of St Peter and St Paul at Vyšehrad",
+        "caption": "Czech-2013-Prague-Vyšehrad-Saints Peter and Paul",
+        "author": "Godot13",
+        "title": "Czech-2013-Prague-Vyšehrad-Saints Peter and Paul",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Czech-2013-Prague-Vy%C5%A1ehrad-Saints_Peter_and_Paul.JPG",
+        "modified": "false"
+      }
+    ]
   },
   {
     "id": "st-vitus-cathedral-begun",
@@ -47,8 +79,24 @@
     },
     "wikipediaUrl": "https://en.wikipedia.org/wiki/St._Vitus_Cathedral",
     "summary": "Construction of the present Gothic cathedral at Prague Castle began in 1344 after Prague became an archbishopric.",
-    "body": [],
-    "images": []
+    "body": [
+      "Charles IV commissioned the Gothic cathedral in 1344, the same year Prague was elevated to an archbishopric, on a site that had already held a rotunda and a Romanesque basilica reaching back to the 10th century. He intended it as a coronation church and a royal mausoleum worthy of an imperial capital.",
+      "Construction continued, on and off, for nearly six hundred years. French and German master masons, including Matthias of Arras and Peter Parler, built the choir and much of the nave in the 14th century, but the western façade and towers were not finished until 1929, giving the building a visible seam between medieval and modern Gothic work.",
+      "It remains the largest and most important church in the Czech Republic, holding the Bohemian crown jewels and the tombs of kings, archbishops, and Saint Wenceslas himself."
+    ],
+    "images": [
+      {
+        "src": "/images/st-vitus-cathedral-begun.jpg",
+        "alt": "The Gothic exterior of St Vitus Cathedral",
+        "caption": "Exterior of St. Vitus Cathedral Prague 4",
+        "author": "Serafita",
+        "title": "Exterior of St. Vitus Cathedral Prague 4",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Exterior_of_St._Vitus_Cathedral_Prague_4.JPG",
+        "modified": "false"
+      }
+    ]
   },
   {
     "id": "charles-university-founded",
@@ -64,8 +112,24 @@
     },
     "wikipediaUrl": "https://en.wikipedia.org/wiki/Charles_University",
     "summary": "Charles IV founded Charles University in 1348, creating the first university in Central Europe north of the Alps.",
-    "body": [],
-    "images": []
+    "body": [
+      "Charles IV founded the university in 1348 by papal charter, modelling it on Paris and Bologna and making it the first university in Central Europe. It drew students and masters from across the region almost immediately, organised into 'nations' representing Bohemia, Bavaria, Saxony, and Poland.",
+      "It quickly became a centre of European scholarship and, within a century, of religious reform: theologian and rector Jan Hus preached reform from its pulpit before being condemned as a heretic and burned at the stake in 1415, an event that helped ignite the Hussite Wars.",
+      "The Karolinum, the university's historic core near the Old Town Square, still hosts graduation ceremonies and administration today, more than 675 years after its founding."
+    ],
+    "images": [
+      {
+        "src": "/images/charles-university-founded.jpg",
+        "alt": "The Karolinum, historic seat of Charles University",
+        "caption": "Praha Karolinum ext 1",
+        "author": "VitVit",
+        "title": "Praha Karolinum ext 1",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Praha_Karolinum_ext_1.jpg",
+        "modified": "false"
+      }
+    ]
   },
   {
     "id": "new-town-founded",
@@ -82,8 +146,24 @@
     },
     "wikipediaUrl": "https://en.wikipedia.org/wiki/New_Town%2C_Prague",
     "summary": "Charles IV founded Prague's New Town in 1348 as a vast planned urban extension beyond the Old Town walls.",
-    "body": [],
-    "images": []
+    "body": [
+      "Charles IV founded the New Town the same year as the university, laying out a vast planned district south and east of the medieval Old Town and roughly tripling Prague's built-up area in a single stroke — an act of urban planning almost unmatched in medieval Europe.",
+      "Wide streets and three enormous market squares, for grain, cattle, and hay, were designed for a city Charles intended as an imperial capital rather than a provincial town. The hay market later became Wenceslas Square, still the commercial and civic centre of modern Prague.",
+      "Charles Square, marked here, was the largest of the three original squares and remains one of the biggest public squares in Europe, now a landscaped park ringed by university and hospital buildings."
+    ],
+    "images": [
+      {
+        "src": "/images/new-town-founded.jpg",
+        "alt": "Charles Square in Prague’s New Town district",
+        "caption": "Karlovo náměstí, od zastávky Moráň",
+        "author": "ŠJů",
+        "title": "Karlovo náměstí, od zastávky Moráň",
+        "license": "CC BY 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Karlovo_n%C3%A1m%C4%9Bst%C3%AD,_od_zast%C3%A1vky_Mor%C3%A1%C5%88.jpg",
+        "modified": "false"
+      }
+    ]
   },
   {
     "id": "charles-bridge-begun",
@@ -99,8 +179,24 @@
     },
     "wikipediaUrl": "https://en.wikipedia.org/wiki/Charles_Bridge",
     "summary": "Construction of Charles Bridge began in 1357 to replace the flood-damaged Judith Bridge across the Vltava.",
-    "body": [],
-    "images": []
+    "body": [
+      "Construction began in 1357 to replace the Judith Bridge, swept away by flooding in 1342, connecting the Old Town to the Lesser Quarter and Prague Castle across the Vltava. Charles IV laid the foundation stone himself, and legend holds that egg yolks were mixed into the mortar for extra strength.",
+      "Whatever the truth of that story, the bridge has survived repeated floods and nearly seven centuries of traffic. It carried carts and coaches until the 20th century and now carries only pedestrians, flanked by thirty baroque statues of saints added mostly in the 18th century.",
+      "It is one of the most photographed places in Europe, and still the most direct walking route between the castle and the Old Town."
+    ],
+    "images": [
+      {
+        "src": "/images/charles-bridge-begun.jpg",
+        "alt": "Charles Bridge spanning the Vltava, seen from Mánes Bridge",
+        "caption": "North view of Charles Bridge from Mánesův most, Prague 20160808 1",
+        "author": "DXR",
+        "title": "North view of Charles Bridge from Mánesův most, Prague 20160808 1",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:North_view_of_Charles_Bridge_from_M%C3%A1nes%C5%AFv_most,_Prague_20160808_1.jpg",
+        "modified": "false"
+      }
+    ]
   },
   {
     "id": "first-defenestration",
@@ -116,8 +212,24 @@
     },
     "wikipediaUrl": "https://en.wikipedia.org/wiki/First_Defenestration_of_Prague",
     "summary": "A crowd led by Jan Zelivsky threw town officials from the New Town Hall windows in 1419, helping ignite the Hussite Wars.",
-    "body": [],
-    "images": []
+    "body": [
+      "On 30 July 1419, a Hussite crowd led by the radical priest Jan Želivský marched on the New Town Hall to demand the release of prisoners held there. When the town councillors refused to negotiate, the crowd stormed the building and threw several officials from an upper-storey window; those who survived the fall were killed by the mob waiting below.",
+      "The killings triggered the Hussite Wars, a sequence of religious and political conflicts that would consume Bohemia for the next two decades. It is widely regarded as one of the first large-scale armed revolts against Catholic Church authority in Europe, and gave Prague's name to a very specific form of political violence.",
+      "The New Town Hall still stands on Charles Square; a modern plaque on its wall marks the site of the 1419 defenestration."
+    ],
+    "images": [
+      {
+        "src": "/images/first-defenestration.jpg",
+        "alt": "The New Town Hall on Charles Square",
+        "caption": "New town City Hall Prague",
+        "author": "Svobodat",
+        "title": "New town City Hall Prague",
+        "license": "CC BY-SA 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:New_town_City_Hall_Prague.jpg",
+        "modified": "false"
+      }
+    ]
   },
   {
     "id": "battle-of-vitkov-hill",
@@ -134,8 +246,24 @@
     },
     "wikipediaUrl": "https://en.wikipedia.org/wiki/Battle_of_V%C3%ADtkov_Hill",
     "summary": "Hussite forces under Jan Zizka repelled a crusader assault on Vitkov Hill in July 1420.",
-    "body": [],
-    "images": []
+    "body": [
+      "In July 1420, a crusader army raised by Holy Roman Emperor Sigismund to crush the Hussite revolt attacked a small fortification on Vítkov Hill overlooking Prague, defended by a modest force under the one-eyed general Jan Žižka.",
+      "Žižka's improvised defences, including wagons chained together as mobile barricades, held against repeated assaults, and the much larger crusader force was routed. The victory became a symbol of Hussite resilience and cemented Žižka's reputation as one of the most successful military commanders of the medieval period, reportedly undefeated in battle.",
+      "A vast National Monument and an equestrian statue of Žižka, among the largest bronze statues in the world, now crown the hill above the site of the fighting."
+    ],
+    "images": [
+      {
+        "src": "/images/battle-of-vitkov-hill.jpg",
+        "alt": "The National Monument on Vítkov Hill",
+        "caption": "Praha, Vítkov, památník",
+        "author": "Blackcat",
+        "title": "Praha, Vítkov, památník",
+        "license": "CC BY-SA 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Praha,_V%C3%ADtkov,_pam%C3%A1tn%C3%ADk.JPG",
+        "modified": "false"
+      }
+    ]
   },
   {
     "id": "rudolf-ii-moves-court",
@@ -151,8 +279,24 @@
     },
     "wikipediaUrl": "https://en.wikipedia.org/wiki/Rudolf_II%2C_Holy_Roman_Emperor",
     "summary": "Rudolf II transferred his imperial court to Prague in 1583 and made the city a major political and cultural center.",
-    "body": [],
-    "images": []
+    "body": [
+      "In 1583, Holy Roman Emperor Rudolf II relocated his court from Vienna to Prague Castle, making the city the effective political capital of the empire for the next three decades — a status it had not held since Charles IV's day and would not hold again.",
+      "Rudolf was a reclusive and eccentric ruler, more interested in collecting than governing, but an enthusiastic patron of the arts and sciences. He filled the castle with paintings, curiosities, and scientific instruments, and drew astronomers, alchemists, and artists from across Europe to his court.",
+      "His reign is remembered as a golden age of Prague's intellectual and artistic life, even as his political authority steadily weakened and was eventually forced from him by his own family."
+    ],
+    "images": [
+      {
+        "src": "/images/rudolf-ii-moves-court.jpg",
+        "alt": "Portrait of Rudolf II, Holy Roman Emperor, c. 1580",
+        "caption": "Portrait of Rudolf II, Holy Roman Emperor, Rudolf I, King of Hungary",
+        "author": "Unknown author",
+        "title": "Portrait of Rudolf II, Holy Roman Emperor, Rudolf I, King of Hungary",
+        "license": "Public domain",
+        "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Portrait_of_Rudolf_II,_Holy_Roman_Emperor_c._1580.jpg",
+        "modified": "false"
+      }
+    ]
   },
   {
     "id": "rabbi-loew-and-the-golem",
@@ -168,8 +312,24 @@
     },
     "wikipediaUrl": "https://en.wikipedia.org/wiki/Judah_Loew_ben_Bezalel",
     "summary": "Rabbi Judah Loew was a leading Prague scholar in the late 16th century and later folklore tied him to the city's Golem legend.",
-    "body": [],
-    "images": []
+    "body": [
+      "Judah Loew ben Bezalel served as chief rabbi of Prague in the late 16th century, a renowned Talmudic scholar and philosopher who reportedly met with Rudolf II and led the city's Jewish community through a period of relative tolerance under imperial protection.",
+      "Centuries after his death, folklore attached his name to the legend of the Golem — a being of clay said to have been animated to protect Prague's Jewish community from persecution, and rumoured to still lie dormant in the synagogue's attic. Historians find no evidence Loew himself told this story; it emerged in print only in the 19th century.",
+      "The Old New Synagogue, where Loew preached, is the oldest active synagogue in Europe and remains at the centre of the legend today."
+    ],
+    "images": [
+      {
+        "src": "/images/rabbi-loew-and-the-golem.jpg",
+        "alt": "The Old New Synagogue in Prague’s Jewish Town",
+        "caption": "Old New Synagogue-Prague",
+        "author": "Yair Haklai",
+        "title": "Old New Synagogue-Prague",
+        "license": "CC BY-SA 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Old_New_Synagogue-Prague.jpg",
+        "modified": "false"
+      }
+    ]
   },
   {
     "id": "brahe-and-kepler-in-prague",
@@ -186,8 +346,24 @@
     },
     "wikipediaUrl": "https://en.wikipedia.org/wiki/Johannes_Kepler",
     "summary": "Tycho Brahe and Johannes Kepler worked in Prague around 1600, where Kepler later used Brahe's observations to derive planetary laws.",
-    "body": [],
-    "images": []
+    "body": [
+      "Tycho Brahe, the Danish astronomer famous for the precision of his naked-eye observations, arrived in Prague in 1599 as imperial mathematician to Rudolf II. Johannes Kepler joined him as an assistant the following year, initially to analyse the orbit of Mars.",
+      "After Brahe's sudden death in 1601, Kepler inherited his vast archive of planetary observations and used it to derive his three laws of planetary motion — among the most consequential breakthroughs in the history of science — largely while working in Prague over the following decade.",
+      "Prague's brief role as home to two of the era's greatest astronomers is a central reason the city is remembered as a hub of Renaissance and early modern science."
+    ],
+    "images": [
+      {
+        "src": "/images/brahe-and-kepler-in-prague.jpg",
+        "alt": "Portrait of the astronomer Tycho Brahe",
+        "caption": "Portrait of Tycho Brahe, astronomer (without a hat)",
+        "author": "Jacques de Gheyn II",
+        "title": "Portrait of Tycho Brahe, astronomer (without a hat)",
+        "license": "Public domain",
+        "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Jacques_de_Gheyn_Ii_-_Portrait_of_Tycho_Brahe,_astronomer_(without_a_hat)_-_Google_Art_Project.jpg",
+        "modified": "false"
+      }
+    ]
   },
   {
     "id": "second-defenestration",
@@ -203,8 +379,24 @@
     },
     "wikipediaUrl": "https://en.wikipedia.org/wiki/Second_Defenestration_of_Prague",
     "summary": "Bohemian nobles hurled imperial governors from a Prague Castle window in 1618, triggering the Bohemian Revolt.",
-    "body": [],
-    "images": []
+    "body": [
+      "On 23 May 1618, Protestant Bohemian nobles, furious at the suppression of their religious rights by the Catholic Habsburg crown, threw two royal governors and a secretary from a third-floor window of the Bohemian Chancellery in Prague Castle. All three survived the roughly 20-metre fall — Catholic accounts credited divine intervention, while Protestant ones pointed to a large dung heap below the window.",
+      "The act was a direct and deliberate challenge to Habsburg authority, and is conventionally taken as the spark that ignited the Thirty Years' War, a conflict that would devastate much of Central Europe over the next three decades and kill an estimated eight million people.",
+      "The window is still identifiable on the Chancellery wing of Prague Castle, overlooking the moat where the men landed."
+    ],
+    "images": [
+      {
+        "src": "/images/second-defenestration.jpg",
+        "alt": "Václav Brožík’s 19th-century painting of the 1618 defenestration",
+        "caption": "Czech: Pražská defenestrace roku 1618.title QS:P1476,cs:\"Pražská defenestrace roku 1618.\"label QS:Lcs,\"Pražská defenestrace roku 1618.\"",
+        "author": "Václav Brožík",
+        "title": "Czech: Pražská defenestrace roku 1618.title QS:P1476,cs:\"Pražská defenestrace roku 1618.\"label QS:Lcs,\"Pražská defenestrace roku 1618.\"",
+        "license": "Public domain",
+        "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:V%C3%A1clavBRO%C5%BD%C3%8DK-Defenestrace.jpg",
+        "modified": "false"
+      }
+    ]
   },
   {
     "id": "battle-of-white-mountain",
@@ -221,8 +413,24 @@
     },
     "wikipediaUrl": "https://en.wikipedia.org/wiki/Battle_of_White_Mountain",
     "summary": "Imperial and Catholic League forces defeated the Bohemian revolt at White Mountain in 1620.",
-    "body": [],
-    "images": []
+    "body": [
+      "On 8 November 1620, an army of the Catholic League decisively defeated the forces of the Protestant Bohemian Estates on a plateau just outside Prague, in a battle that lasted barely an hour.",
+      "The defeat ended the Bohemian Revolt and, with it, Bohemian self-government for nearly three centuries. The following years brought forced re-Catholicisation, the confiscation of Protestant nobles' estates, and the entrenchment of German as the language of administration — consequences that shaped Czech national identity long afterward.",
+      "A small baroque chapel and a modest memorial mark the battlefield today, largely built over by the residential suburbs of western Prague."
+    ],
+    "images": [
+      {
+        "src": "/images/battle-of-white-mountain.jpg",
+        "alt": "A contemporary painting of the Battle of White Mountain",
+        "caption": "Schlacht am weißen Berg bei Prag",
+        "author": "Peter Snayers",
+        "title": "Schlacht am weißen Berg bei Prag",
+        "license": "Public domain",
+        "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Pieter_Snayers_-_Schlacht_am_wei%C3%9Fen_Berg_bei_Prag_-_2309_-_Bavarian_State_Painting_Collections.jpg",
+        "modified": "false"
+      }
+    ]
   },
   {
     "id": "execution-of-27-lords",
@@ -238,8 +446,24 @@
     },
     "wikipediaUrl": "https://en.wikipedia.org/wiki/Old_Town_Square",
     "summary": "Habsburg authorities executed 27 leaders of the Bohemian revolt in Old Town Square on 21 June 1621.",
-    "body": [],
-    "images": []
+    "body": [
+      "On 21 June 1621, Habsburg authorities publicly executed 27 leaders of the Bohemian Revolt in Old Town Square, in a carefully staged spectacle intended to break Protestant resistance for good. Most were beheaded; a handful of commoners among them were hanged, and several heads were displayed on the Charles Bridge tower for a decade afterward as a warning.",
+      "The executions marked the effective end of independent Bohemian aristocratic power and accelerated the region's re-Catholicisation under Habsburg rule, a turning point still referenced in Czech national memory as one of the deepest wounds of the period.",
+      "Twenty-seven white crosses set into the cobblestones in front of the Old Town Hall mark the exact site today."
+    ],
+    "images": [
+      {
+        "src": "/images/execution-of-27-lords.jpg",
+        "alt": "Memorial crosses marking the 1621 execution site in Old Town Square",
+        "caption": "Tribute to the 27 victims",
+        "author": "Julie Otten (Transferred by Cloudbound/Originally uploaded by Beao)",
+        "title": "Tribute to the 27 victims",
+        "license": "Public domain",
+        "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Tribute_to_the_27_victims.jpg",
+        "modified": "false"
+      }
+    ]
   },
   {
     "id": "national-theatre-opens",
@@ -255,8 +479,24 @@
     },
     "wikipediaUrl": "https://en.wikipedia.org/wiki/National_Theatre_%28Prague%29",
     "summary": "The National Theatre first opened in 1881 as a major symbol of Czech cultural and political self-assertion.",
-    "body": [],
-    "images": []
+    "body": [
+      "The National Theatre first opened on 11 June 1881, funded almost entirely by public subscription from Czechs of every social class as a deliberate assertion of national identity within the Austro-Hungarian Empire. It burned down just weeks later; rebuilding funds poured in from across the Czech lands within days, and it reopened in 1883.",
+      "Its motto, \"Národ sobě\" (\"The nation to itself\"), inscribed above the stage, captures the spirit of the Czech National Revival — a 19th-century movement to reclaim Czech language, culture, and self-respect after generations of Germanisation under Habsburg rule.",
+      "It remains the country's leading stage for opera, drama, and ballet, and one of Prague's most recognisable riverside landmarks."
+    ],
+    "images": [
+      {
+        "src": "/images/national-theatre-opens.jpg",
+        "alt": "The National Theatre viewed from the Vltava embankment",
+        "caption": "Národní divadlo z Kampy",
+        "author": "Tadeáš Gregor",
+        "title": "Národní divadlo z Kampy",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:N%C3%A1rodn%C3%AD_divadlo_z_Kampy.jpg",
+        "modified": "false"
+      }
+    ]
   },
   {
     "id": "josefov-clearance",
@@ -274,8 +514,24 @@
     },
     "wikipediaUrl": "https://en.wikipedia.org/wiki/Josefov",
     "summary": "Large parts of Prague's historic Jewish Quarter were demolished and rebuilt between 1893 and 1913 in a sweeping urban clearance.",
-    "body": [],
-    "images": []
+    "body": [
+      "Between 1893 and 1913, the city of Prague demolished most of Josefov, the historic Jewish quarter, under a sanitation programme known as the asanace. Officials cited overcrowding and disease in the district's dense, ageing housing; in practice the clearance erased a centuries-old neighbourhood of narrow streets and courtyards almost entirely.",
+      "The people who had lived there — mostly poor Jewish residents alongside other working-class Praguers — were displaced with little say in the process, and the district that replaced them, laid out with wide Parisian-style boulevards and Art Nouveau apartment buildings, served a wealthier population with little connection to the community it had erased.",
+      "A handful of synagogues, the Old Jewish Cemetery, and the Jewish Town Hall survived the clearance; they now form the Jewish Museum in Prague, among the only physical traces of a neighbourhood that had stood here for more than five hundred years."
+    ],
+    "images": [
+      {
+        "src": "/images/josefov-clearance.jpg",
+        "alt": "The Jewish Town Hall in Josefov, one of the few buildings to survive the clearance",
+        "caption": "Old New Synagogue- Jewish Town Hall (Prague)",
+        "author": "Yair Haklai",
+        "title": "Old New Synagogue- Jewish Town Hall (Prague)",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Old_New_Synagogue-_Jewish_Town_Hall_(Prague).jpg",
+        "modified": "false"
+      }
+    ]
   },
   {
     "id": "czechoslovakia-declared",
@@ -291,8 +547,24 @@
     },
     "wikipediaUrl": "https://en.wikipedia.org/wiki/Czechoslovak_declaration_of_independence",
     "summary": "The Czechoslovak declaration of independence was proclaimed in Prague on 28 October 1918 as Habsburg rule collapsed.",
-    "body": [],
-    "images": []
+    "body": [
+      "On 28 October 1918, as the Austro-Hungarian Empire collapsed in the closing days of the First World War, Czech political leaders proclaimed the independent state of Czechoslovakia from the steps of the Municipal House in Prague.",
+      "The new republic, led by philosopher-president Tomáš Garrigue Masaryk, became one of interwar Europe's few enduring democracies, uniting Czech and Slovak lands with substantial German, Hungarian, and other minority populations under a single constitution.",
+      "28 October remains a Czech national holiday, and the Municipal House still stands as one of Prague's finest Art Nouveau buildings, its ceremonial hall named for composer Bedřich Smetana."
+    ],
+    "images": [
+      {
+        "src": "/images/czechoslovakia-declared.jpg",
+        "alt": "The Art Nouveau facade of the Municipal House",
+        "caption": "Prague Municipal House 01",
+        "author": "Uoaei1",
+        "title": "Prague Municipal House 01",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Prague_Municipal_House_01.jpg",
+        "modified": "false"
+      }
+    ]
   },
   {
     "id": "nazi-occupation-begins",
@@ -308,8 +580,24 @@
     },
     "wikipediaUrl": "https://en.wikipedia.org/wiki/German_occupation_of_Czechoslovakia",
     "summary": "German troops occupied Prague in March 1939 and Prague Castle became the seat of the new Protectorate regime.",
-    "body": [],
-    "images": []
+    "body": [
+      "On 15 March 1939, German troops entered Prague without resistance, completing the dismantling of Czechoslovakia that had begun with the Munich Agreement the previous autumn. Adolf Hitler addressed a crowd from a window of Prague Castle that same evening, and the Bohemian and Moravian lands were declared a German Protectorate.",
+      "The occupation brought six years of repression: the closure of Czech universities, the systematic deportation and murder of the country's Jewish population, and the suppression of Czech political and cultural life under successive Reich Protectors.",
+      "Prague Castle, briefly the ceremonial seat of the occupying regime, returned to Czechoslovak state use after the war's end in 1945 and remains the seat of the presidency today."
+    ],
+    "images": [
+      {
+        "src": "/images/nazi-occupation-begins.jpg",
+        "alt": "Historical photograph of German officials at Prague Castle following the March 1939 occupation",
+        "caption": "Bundesarchiv Bild 183-2004-1202-505, Prag, Burg, Besuch Adolf Hitler",
+        "author": "Bundesarchiv, Bild 183-2004-1202-505 (photographer unknown)",
+        "title": "Prag, Burg, Besuch Adolf Hitler",
+        "license": "Public domain",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/de/deed.en",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Bundesarchiv_Bild_183-2004-1202-505,_Prag,_Burg,_Besuch_Adolf_Hitler.jpg",
+        "modified": "false"
+      }
+    ]
   },
   {
     "id": "heydrich-assassination",
@@ -325,8 +613,24 @@
     },
     "wikipediaUrl": "https://en.wikipedia.org/wiki/Assassination_of_Reinhard_Heydrich",
     "summary": "Czechoslovak resistance fighters attacked Reinhard Heydrich at a bend in Liben in May 1942, prompting brutal Nazi reprisals.",
-    "body": [],
-    "images": []
+    "body": [
+      "On 27 May 1942, two Czechoslovak paratroopers trained in Britain ambushed Reinhard Heydrich, the Reich Protector of Bohemia and Moravia and one of the chief architects of the Holocaust, as his car slowed at a bend in the road in the Libeň district. Heydrich died of his wounds a week later.",
+      "Nazi retaliation was swift and vastly disproportionate: the villages of Lidice and Ležáky were razed to the ground and their populations murdered or deported, and thousands more Czechs were arrested and executed in the following weeks. The paratroopers were ultimately betrayed and died in a shootout with German forces at the Church of Saints Cyril and Methodius, where bullet holes are still visible around the crypt window.",
+      "The attack is remembered both as an act of extraordinary courage and as the cause of one of the war's most brutal reprisals against civilians — a history the church's crypt, now a memorial, addresses directly."
+    ],
+    "images": [
+      {
+        "src": "/images/heydrich-assassination.jpg",
+        "alt": "The memorial to the paratroopers at the Church of Saints Cyril and Methodius",
+        "caption": "Pomník vlastencům, chrám sv. Cyrila a Metoděje, Praha",
+        "author": "Ondřej Žváček",
+        "title": "Pomník vlastencům, chrám sv. Cyrila a Metoděje, Praha",
+        "license": "CC BY 2.5",
+        "licenseUrl": "https://creativecommons.org/licenses/by/2.5",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Pomn%C3%ADk_vlastenc%C5%AFm,_chr%C3%A1m_sv._Cyrila_a_Metod%C4%9Bje,_Praha.jpg",
+        "modified": "false"
+      }
+    ]
   },
   {
     "id": "prague-spring-invasion",
@@ -342,8 +646,24 @@
     },
     "wikipediaUrl": "https://en.wikipedia.org/wiki/Warsaw_Pact_invasion_of_Czechoslovakia",
     "summary": "Warsaw Pact forces invaded Czechoslovakia in August 1968, and fighting around the radio building became one of Prague's defining scenes.",
-    "body": [],
-    "images": []
+    "body": [
+      "In August 1968, around half a million Warsaw Pact troops invaded Czechoslovakia to crush the Prague Spring, a period of liberalising reform under Communist Party leader Alexander Dubček that had become known as \"socialism with a human face.\"",
+      "Czechoslovaks offered largely unarmed resistance: removing street signs to confuse invading columns, gathering around tanks to argue with soldiers, and rallying at the Czechoslovak Radio building, which continued broadcasting in defiance until it was overrun. Dozens of civilians were killed in the first days of the occupation.",
+      "The invasion ended the reforms and ushered in two decades of harsher \"normalisation\" under a re-imposed hard-line government, but the memory of 1968 became a lasting touchstone for dissent that resurfaced two decades later."
+    ],
+    "images": [
+      {
+        "src": "/images/prague-spring-invasion.jpg",
+        "alt": "A Prague street scene during the 1968 invasion",
+        "caption": "Prague-1968-street-scene",
+        "author": "Reijo Nikkilä",
+        "title": "Prague-1968-street-scene",
+        "license": "Public domain",
+        "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Prague-1968-street-scene.jpg",
+        "modified": "false"
+      }
+    ]
   },
   {
     "id": "jan-palach-self-immolation",
@@ -359,8 +679,24 @@
     },
     "wikipediaUrl": "https://en.wikipedia.org/wiki/Jan_Palach",
     "summary": "Student Jan Palach set himself on fire in Wenceslas Square in January 1969 to protest the post-invasion suppression of reform.",
-    "body": [],
-    "images": []
+    "body": [
+      "On 16 January 1969, twenty-year-old philosophy student Jan Palach set himself on fire in Wenceslas Square in protest at the crushing of the Prague Spring and, more specifically, at the public resignation and apathy that had followed it. He died of his injuries three days later.",
+      "His act was not, as sometimes assumed, primarily a protest against the Soviet occupation itself, but against the demoralisation it had produced — a final, desperate attempt to shock his fellow citizens back into resistance. His funeral drew hundreds of thousands of mourners despite state efforts to suppress it.",
+      "A small memorial cross is set into the pavement near the National Museum, close to where he fell, and the adjoining square was later renamed Jan Palach Square in his honour."
+    ],
+    "images": [
+      {
+        "src": "/images/jan-palach-self-immolation.jpg",
+        "alt": "The memorial to Jan Palach and Jan Zajíc near Wenceslas Square",
+        "caption": "Denkmal Jan Palach, Jan Zajic, Wenzelsplatz vor Nationalmuseum, Prag",
+        "author": "Netopyr",
+        "title": "Denkmal Jan Palach, Jan Zajic, Wenzelsplatz vor Nationalmuseum, Prag",
+        "license": "CC BY-SA 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Denkmal_Jan_Palach,_Jan_Zajic,_Wenzelsplatz_vor_Nationalmuseum,_Prag.jpg",
+        "modified": "false"
+      }
+    ]
   },
   {
     "id": "velvet-revolution",
@@ -376,8 +712,24 @@
     },
     "wikipediaUrl": "https://en.wikipedia.org/wiki/Velvet_Revolution",
     "summary": "The police assault on a student march at Narodni trida on 17 November 1989 helped trigger the Velvet Revolution.",
-    "body": [],
-    "images": []
+    "body": [
+      "On 17 November 1989, riot police violently broke up a peaceful student march on Národní třída, beating demonstrators in scenes that shocked the country when footage spread in the following days. Strikes and mass demonstrations, some drawing hundreds of thousands of people to Wenceslas Square, spread across Czechoslovakia within a week.",
+      "Faced with collapsing authority and the fall of neighbouring communist governments that same autumn, the Communist Party leadership resigned within weeks. Playwright and dissident Václav Havel was elected president before the year was out, in a transition remembered for its almost total absence of violence — hence the name \"Velvet Revolution.\"",
+      "A bronze memorial of raised hands set into the wall on Národní třída marks the site of the police crackdown that set the revolution in motion."
+    ],
+    "images": [
+      {
+        "src": "/images/velvet-revolution.jpg",
+        "alt": "Crowds filling Wenceslas Square during the Velvet Revolution, November 1989",
+        "caption": "1989 November Prague Velvet Revolution Wenceslas Square night time protest",
+        "author": "RobbieIanMorrison",
+        "title": "1989 November Prague Velvet Revolution Wenceslas Square night time protest",
+        "license": "CC BY 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:1989_November_Prague_Velvet_Revolution_Wenceslas_Square_night_time_protest.jpg",
+        "modified": "false"
+      }
+    ]
   },
   {
     "id": "vltava-floods",
@@ -394,7 +746,23 @@
     },
     "wikipediaUrl": "https://en.wikipedia.org/wiki/2002_European_floods",
     "summary": "The 2002 floods inundated major parts of Prague, including Karlin and long stretches of the Vltava embankment.",
-    "body": [],
-    "images": []
+    "body": [
+      "In August 2002, after days of exceptional rainfall across Central Europe, the Vltava rose to its highest level in Prague in over a century, submerging parts of the historic centre, the city zoo, and the low-lying district of Karlín almost entirely.",
+      "The metro system, much of it built beneath the riverbanks, flooded extensively and took months to fully reopen; tens of thousands of residents were evacuated across the city and several people died in the flooding nationwide. Damage across the Czech Republic ran into billions of dollars.",
+      "Plaques marking the water's high-tide line are still visible on buildings throughout the riverside districts, a quiet, permanent reminder of how close the flood came to the city's most historic quarters."
+    ],
+    "images": [
+      {
+        "src": "/images/vltava-floods.jpg",
+        "alt": "Floodwater in Stromovka park during the 2002 Vltava floods",
+        "caption": "Praha, Bubeneč, Stromovka, povodeň 2002",
+        "author": "Aktron",
+        "title": "Praha, Bubeneč, Stromovka, povodeň 2002",
+        "license": "CC BY 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Praha,_Bubene%C4%8D,_Stromovka,_povode%C5%88_2002.JPG",
+        "modified": "false"
+      }
+    ]
   }
 ]
