@@ -1,6 +1,16 @@
 import type { StyleSpecification } from 'maplibre-gl';
 
 export const TILE_SOURCE = 'openfreemap';
+export const BUILDING_SOURCE_LAYER = 'building';
+
+// Colors for the specific building a story event happened in/at, applied via
+// MapLibre feature-state (see eventBuildings.ts) rather than baked into the
+// paint expression as a filter — buildings are identified at runtime by
+// querying the rendered tile at each event's coordinates, not by any static
+// list, so the highlight has to be data-driven.
+export const DEFAULT_BUILDING_COLOR = '#b6af9f';
+export const EVENT_BUILDING_COLOR = '#c9a227';
+export const SELECTED_EVENT_BUILDING_COLOR = '#d97706';
 
 export const PRAGUE_CENTER: [number, number] = [14.4205, 50.088];
 export const PRAGUE_MAX_BOUNDS: [[number, number], [number, number]] = [
@@ -105,10 +115,17 @@ export const MAP_STYLE: StyleSpecification = {
       id: 'building-extrusions',
       type: 'fill-extrusion',
       source: TILE_SOURCE,
-      'source-layer': 'building',
+      'source-layer': BUILDING_SOURCE_LAYER,
       minzoom: 13,
       paint: {
-        'fill-extrusion-color': '#b6af9f',
+        'fill-extrusion-color': [
+          'case',
+          ['boolean', ['feature-state', 'isSelectedEventBuilding'], false],
+          SELECTED_EVENT_BUILDING_COLOR,
+          ['boolean', ['feature-state', 'isEventBuilding'], false],
+          EVENT_BUILDING_COLOR,
+          DEFAULT_BUILDING_COLOR,
+        ],
         'fill-extrusion-base': ['coalesce', ['get', 'render_min_height'], 0],
         'fill-extrusion-height': ['coalesce', ['get', 'render_height'], 12],
         'fill-extrusion-opacity': 0.94,
