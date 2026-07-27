@@ -77,7 +77,7 @@ export default function EventPanel({
 
           <section className="mt-6">
             <h3 className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
-              Story Draft
+              Story
             </h3>
             {event.body.length > 0 ? (
               <div className="mt-3 space-y-4 text-base leading-7 text-slate-800">
@@ -104,7 +104,7 @@ export default function EventPanel({
                     className="overflow-hidden rounded-3xl border border-slate-200 bg-white/80"
                   >
                     <img
-                      src={`${import.meta.env.BASE_URL}images/${image.src}`}
+                      src={`${import.meta.env.BASE_URL}${image.src.replace(/^\//, '')}`}
                       alt={image.alt}
                       loading="lazy"
                       className="h-56 w-full object-cover"
