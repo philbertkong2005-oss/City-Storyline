@@ -1,10 +1,9 @@
-import type { Era } from '../../data/schema';
+import { centuryLabel, centuryOf } from '../../store/useAppStore';
 
 type ScrubberProps = {
   minYear: number;
   maxYear: number;
   year: number;
-  currentEra: Era | null;
   onYearChange: (year: number) => void;
 };
 
@@ -12,17 +11,14 @@ export default function Scrubber({
   minYear,
   maxYear,
   year,
-  currentEra,
   onYearChange,
 }: ScrubberProps) {
   return (
-    <div className="rounded-[1.5rem] border border-white/60 bg-[#f8f5ef]/85 px-5 py-3 shadow-panel backdrop-blur">
+    <div className="px-5 pb-2.5 pt-2">
       <div className="flex items-center gap-5">
-        <div className="flex w-56 shrink-0 items-baseline gap-2">
+        <div className="flex w-40 shrink-0 items-baseline gap-2">
           <span className="font-display text-3xl leading-none text-slate-950">{year}</span>
-          <span className="truncate text-sm text-slate-600">
-            {currentEra?.name ?? 'Outside chapter range'}
-          </span>
+          <span className="text-sm text-slate-600">{centuryLabel(centuryOf(year))}</span>
         </div>
 
         <label className="min-w-0 flex-1">

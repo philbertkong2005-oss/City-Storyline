@@ -1,49 +1,65 @@
 [
   {
     "id": "premyslid",
-    "name": "Founding & the Premyslids",
+    "name": "Founding & the Přemyslids",
+    "shortName": "Founding",
+    "blurb": "Prague begins as a fortified seat above a ford in the Vltava. The Přemyslid dynasty rules from the castle and from Vyšehrad, while a merchant settlement grows on the riverbank below.",
     "yearStart": 870,
     "yearEnd": 1306
   },
   {
     "id": "charles",
     "name": "The Golden Age of Charles IV",
+    "shortName": "Charles IV",
+    "blurb": "Charles IV makes Prague the capital of the Holy Roman Empire. He founds the first university north of the Alps, lays out an entire New Town, and begins the cathedral and the bridge that still carry his name.",
     "yearStart": 1306,
     "yearEnd": 1419
   },
   {
     "id": "hussite",
     "name": "Hussite Prague",
+    "shortName": "Hussite",
+    "blurb": "Religious reform turns to revolt. Councillors are thrown from the windows of the New Town Hall in 1419, and Jan Žižka's forces defeat a crusader army on Vítkov Hill the year after.",
     "yearStart": 1419,
     "yearEnd": 1526
   },
   {
     "id": "rudolfine",
     "name": "Habsburg & Rudolfine Prague",
+    "shortName": "Rudolfine",
+    "blurb": "Rudolf II moves the imperial court to Prague and fills it with astronomers, alchemists and painters. Tycho Brahe and Johannes Kepler work here, and the Jewish Town gives rise to the legend of Rabbi Loew's Golem.",
     "yearStart": 1526,
     "yearEnd": 1618
   },
   {
     "id": "white-mountain",
     "name": "After White Mountain",
+    "shortName": "White Mountain",
+    "blurb": "A second defenestration in 1618 helps ignite the Thirty Years' War. Defeat at White Mountain in 1620 and the execution of twenty-seven Czech leaders the following year end Bohemian self-rule for three centuries.",
     "yearStart": 1618,
     "yearEnd": 1848
   },
   {
     "id": "revival",
     "name": "National Revival & the First Republic",
+    "shortName": "Revival",
+    "blurb": "Czech language and culture reassert themselves. The National Theatre is built by public subscription, the old Jewish quarter is cleared and rebuilt, and Czechoslovakia is declared independent in 1918.",
     "yearStart": 1848,
     "yearEnd": 1939
   },
   {
     "id": "occupation",
     "name": "Occupation & Communism",
+    "shortName": "Occupation",
+    "blurb": "Fifty years under two dictatorships: Nazi occupation and the reprisals that followed Heydrich's assassination, then a communist state, the crushing of the Prague Spring, and Jan Palach's death in protest.",
     "yearStart": 1939,
     "yearEnd": 1989
   },
   {
     "id": "velvet",
     "name": "Velvet Revolution & Modern Prague",
+    "shortName": "Velvet",
+    "blurb": "A student march down Národní třída in November 1989 brings down the communist government within weeks. Prague reopens to the world, and in 2002 the Vltava floods the city.",
     "yearStart": 1989,
     "yearEnd": null
   }

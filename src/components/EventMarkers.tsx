@@ -6,8 +6,8 @@ import maplibregl, {
   type Popup,
 } from 'maplibre-gl';
 
-import type { Era, StoryEvent } from '../data/schema';
-import { getEventMarkerState } from '../store/useAppStore';
+import type { StoryEvent } from '../data/schema';
+import { getEventMarkerState, type TimeFilter } from '../store/useAppStore';
 import EventPopup from './EventPopup';
 
 type MarkerRecord = {
@@ -20,8 +20,7 @@ type MarkerRecord = {
 type EventMarkersProps = {
   map: MapLibreMap;
   events: StoryEvent[];
-  currentYear: number;
-  currentEra: Era | null;
+  timeFilter: TimeFilter;
   selectedEventId: string | null;
   onSelectEvent: (event: StoryEvent) => void;
   onReadMore: (event: StoryEvent) => void;
@@ -32,8 +31,6 @@ function markerClassName(event: StoryEvent, state: ReturnType<typeof getEventMar
 
   if (state === 'active') {
     baseClasses.push('story-marker--active');
-  } else if (state === 'dimmed') {
-    baseClasses.push('story-marker--dimmed');
   } else {
     baseClasses.push('story-marker--hidden');
   }
@@ -52,8 +49,7 @@ function markerClassName(event: StoryEvent, state: ReturnType<typeof getEventMar
 export default function EventMarkers({
   map,
   events,
-  currentYear,
-  currentEra,
+  timeFilter,
   selectedEventId,
   onSelectEvent,
   onReadMore,
@@ -118,12 +114,19 @@ export default function EventMarkers({
         continue;
       }
 
-      const state = getEventMarkerState(event, currentYear, currentEra?.id ?? null);
+      const state = getEventMarkerState(event, timeFilter);
       record.button.className = markerClassName(
         event,
         state,
         selectedEventId === event.id,
       );
+      // Hidden markers must not stay in the tab order, or keyboard users land on
+      // pins they cannot see.
+      record.button.tabIndex = state === 'active' ? 0 : -1;
+      record.button.setAttribute('aria-hidden', state === 'active' ? 'false' : 'true');
+      if (state !== 'active') {
+        record.popup.remove();
+      }
       record.popupRoot.render(
         <EventPopup
           event={event}
@@ -134,7 +137,7 @@ export default function EventMarkers({
         />,
       );
     }
-  }, [currentEra, currentYear, events, onReadMore, selectedEventId]);
+  }, [events, onReadMore, selectedEventId, timeFilter]);
 
   return null;
 }

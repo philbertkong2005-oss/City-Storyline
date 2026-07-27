@@ -78,8 +78,9 @@
 
 .story-marker {
   display: inline-flex;
-  height: 1.1rem;
-  width: 1.1rem;
+  cursor: pointer;
+  height: 1.45rem;
+  width: 1.45rem;
   align-items: center;
   justify-content: center;
   border: 2px solid rgba(15, 23, 42, 0.8);
@@ -95,20 +96,29 @@
 
 .story-marker::after {
   content: '';
-  height: 0.35rem;
-  width: 0.35rem;
+  height: 0.45rem;
+  width: 0.45rem;
   border-radius: 9999px;
   background: #0f172a;
 }
 
 .story-marker--active {
   opacity: 1;
-  transform: translateY(-5px) scale(1.08);
+  transform: translateY(-5px) scale(1);
 }
 
-.story-marker--dimmed {
-  opacity: 0.42;
-  transform: translateY(0) scale(0.98);
+.story-marker--active:hover {
+  transform: translateY(-7px) scale(1.18);
+  background: #0f172a;
+}
+
+.story-marker--active:hover::after {
+  background: #f8f5ef;
+}
+
+.story-marker:focus-visible {
+  outline: 3px solid rgba(15, 23, 42, 0.55);
+  outline-offset: 3px;
 }
 
 .story-marker--hidden {

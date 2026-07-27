@@ -8,13 +8,16 @@ import ListFallback from './components/ListFallback';
 import MapCanvas from './components/MapCanvas';
 import EraBands from './components/Timeline/EraBands';
 import Scrubber from './components/Timeline/Scrubber';
+import WindowNote from './components/Timeline/WindowNote';
 import { flyToEra, flyToEvent } from './lib/camera';
 import { StaticJsonRepository } from './lib/repository';
 import { useMapHealth } from './lib/useMapHealth';
 import {
+  describeTimeFilter,
   getCurrentEra,
   getEventsByEra,
   getTimelineEnd,
+  getVisibleEvents,
   useAppStore,
 } from './store/useAppStore';
 
@@ -64,12 +67,13 @@ export default function App() {
     eras,
     events,
     errorMessage,
-    tours,
     navigation,
+    timeFilter,
     panelEventId,
     loadContent,
     setYearFromScrubber,
-    selectEra,
+    selectEraFilter,
+    clearTimeFilter,
     selectEvent,
     openPanel,
     closePanel,
@@ -86,7 +90,9 @@ export default function App() {
 
   const timelineEnd = getTimelineEnd(events, new Date().getFullYear());
   const currentEra = getCurrentEra(eras, navigation.year);
-  const eventGroups = getEventsByEra(eras, events);
+  const visibleEvents = getVisibleEvents(events, timeFilter);
+  const windowNote = describeTimeFilter(timeFilter, eras);
+  const eventGroups = getEventsByEra(eras, visibleEvents);
   const panelEvent = events.find((event) => event.id === panelEventId) ?? null;
   const panelEra = panelEvent ? eras.find((era) => era.id === panelEvent.eraId) ?? null : null;
   const showListFallback = !largeScreen || hasFailed;
@@ -130,12 +136,16 @@ export default function App() {
     [setYearFromScrubber],
   );
 
+  const handleSelectAll = useCallback(() => {
+    clearTimeFilter();
+  }, [clearTimeFilter]);
+
   const handleEraSelect = useCallback(
     (era: Era) => {
-      selectEra(era.yearStart);
+      selectEraFilter(era);
       focusEraOnMap(era);
     },
-    [focusEraOnMap, selectEra],
+    [focusEraOnMap, selectEraFilter],
   );
 
   const handleSelectEvent = useCallback(
@@ -243,8 +253,7 @@ export default function App() {
                   <EventMarkers
                     map={map}
                     events={events}
-                    currentYear={navigation.year}
-                    currentEra={currentEra}
+                    timeFilter={timeFilter}
                     selectedEventId={navigation.selectedEventId}
                     onSelectEvent={handleSelectEvent}
                     onReadMore={handleOpenPanel}
@@ -272,18 +281,26 @@ export default function App() {
           ) : null}
         </section>
 
-        <section className="grid shrink-0 gap-3">
-          <Scrubber
-            minYear={eras[0]?.yearStart ?? 870}
-            maxYear={timelineEnd}
-            year={navigation.year}
-            currentEra={currentEra}
-            onYearChange={handleYearChange}
-          />
+        <section className="grid shrink-0 gap-2">
+          <div className="rounded-[1.5rem] border border-white/60 bg-[#f8f5ef]/85 shadow-panel backdrop-blur">
+            <WindowNote
+              title={windowNote.title}
+              blurb={windowNote.blurb}
+              visibleCount={visibleEvents.length}
+              totalCount={events.length}
+            />
+            <Scrubber
+              minYear={eras[0]?.yearStart ?? 870}
+              maxYear={timelineEnd}
+              year={navigation.year}
+              onYearChange={handleYearChange}
+            />
+          </div>
           <EraBands
             eras={eras}
-            currentEraId={currentEra?.id ?? null}
+            timeFilter={timeFilter}
             onSelectEra={handleEraSelect}
+            onSelectAll={handleSelectAll}
           />
         </section>
       </div>

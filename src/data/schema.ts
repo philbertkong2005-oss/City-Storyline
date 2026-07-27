@@ -47,6 +47,10 @@ export const storyEventSchema = z.object({
 export const eraSchema = z.object({
   id: z.string().min(1),
   name: z.string().min(1),
+  /** Compact label for the timeline chips, where the full name does not fit. */
+  shortName: z.string().min(1).max(18),
+  /** One or two sentences shown when this chapter is selected. */
+  blurb: z.string().min(1),
   yearStart: z.number().int(),
   yearEnd: z.number().int().nullable(),
 });
