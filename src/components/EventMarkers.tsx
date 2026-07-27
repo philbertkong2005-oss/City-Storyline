@@ -97,9 +97,14 @@ export default function EventMarkers({
 
     return () => {
       for (const record of markerRecordsRef.current.values()) {
-        record.popupRoot.unmount();
+        const { popupRoot } = record;
         record.popup.remove();
         record.marker.remove();
+        // Unmounting a React root synchronously inside an effect cleanup happens
+        // while React is still rendering, which it warns is a race. A microtask is
+        // not enough — it can still flush inside React's work loop — so defer to a
+        // macrotask, which is guaranteed to run after the commit finishes.
+        setTimeout(() => popupRoot.unmount(), 0);
       }
       markerRecordsRef.current.clear();
     };
@@ -116,6 +121,10 @@ export default function EventMarkers({
       const active = state === 'active';
 
       applyMarkerClasses(record.button, event, state, selectedEventId === event.id);
+
+      // MapLibre stamps its own generic aria-label onto a custom marker element,
+      // so re-apply ours or every pin announces as "Map marker".
+      record.button.setAttribute('aria-label', `${event.title}, ${event.yearStart}`);
 
       // Belt and braces: `display` cannot be defeated by a CSS specificity clash the
       // way an opacity-only hide can, so an out-of-window pin is genuinely gone.

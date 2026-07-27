@@ -1,11 +1,19 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import type { Map } from 'maplibre-gl';
 
 import type { Era, StoryEvent } from './data/schema';
 import EventMarkers from './components/EventMarkers';
 import EventPanel from './components/EventPanel';
+import IconRail from './components/IconRail';
 import ListFallback from './components/ListFallback';
 import MapCanvas from './components/MapCanvas';
+import Splitter from './components/Splitter';
 import EraBands from './components/Timeline/EraBands';
 import Scrubber from './components/Timeline/Scrubber';
 import WindowNote from './components/Timeline/WindowNote';
@@ -13,13 +21,24 @@ import { flyToEra, flyToEvent } from './lib/camera';
 import { StaticJsonRepository } from './lib/repository';
 import { useMapHealth } from './lib/useMapHealth';
 import {
-  describeTimeFilter,
+  DEFAULT_RIGHT_COLUMN_SPLIT,
   getCurrentEra,
   getEventsByEra,
   getTimelineEnd,
   getVisibleEvents,
+  MAX_RIGHT_COLUMN_WIDTH,
+  MIN_BOTTOM_REGION_HEIGHT,
+  MIN_RIGHT_COLUMN_WIDTH,
+  type PanelId,
+  describeTimeFilter,
   useAppStore,
 } from './store/useAppStore';
+
+const MIN_RIGHT_PANEL_HEIGHT = 8 * 16;
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(Math.max(value, min), max);
+}
 
 function useLargeScreen(): boolean {
   const [largeScreen, setLargeScreen] = useState(() => {
@@ -48,6 +67,98 @@ function useLargeScreen(): boolean {
   return largeScreen;
 }
 
+/**
+ * Measures an element and keeps a ref to it.
+ *
+ * Uses a callback ref rather than observing `ref.current` in a mount-only effect:
+ * content loads asynchronously, so App renders a loading screen first and these
+ * elements do not exist yet on first mount. An effect keyed on a stable ref object
+ * would bail once and never re-run, leaving every measurement at 0 — which silently
+ * collapses the splitter clamps to their minimums.
+ */
+function useMeasuredRef<T extends HTMLElement>() {
+  const ref = useRef<T | null>(null);
+  const [node, setNode] = useState<T | null>(null);
+  const [size, setSize] = useState({ width: 0, height: 0, scrollHeight: 0 });
+
+  const setRef = useCallback((element: T | null) => {
+    ref.current = element;
+    setNode(element);
+  }, []);
+
+  useEffect(() => {
+    if (!node) {
+      return;
+    }
+
+    const measure = (): void => {
+      setSize({
+        width: node.clientWidth,
+        height: node.clientHeight,
+        scrollHeight: node.scrollHeight,
+      });
+    };
+
+    measure();
+
+    if (typeof ResizeObserver === 'undefined') {
+      return;
+    }
+
+    const observer = new ResizeObserver(measure);
+    observer.observe(node);
+
+    return () => observer.disconnect();
+  }, [node]);
+
+  return { ref, setRef, size };
+}
+
+function getClampedRightColumnWidth(rawWidth: number, availableWidth: number): number {
+  const maxWidth = Math.min(
+    MAX_RIGHT_COLUMN_WIDTH,
+    Math.max(MIN_RIGHT_COLUMN_WIDTH, availableWidth - 1),
+  );
+  return clamp(rawWidth, MIN_RIGHT_COLUMN_WIDTH, maxWidth);
+}
+
+function getClampedBottomRegionHeight(
+  rawHeight: number,
+  naturalHeight: number,
+  availableHeight: number,
+): number {
+  const maxHeight = Math.min(
+    Math.max(MIN_BOTTOM_REGION_HEIGHT, availableHeight * 0.6),
+    Math.max(MIN_BOTTOM_REGION_HEIGHT, availableHeight - 1),
+  );
+  const baseHeight = rawHeight === 0 ? naturalHeight : rawHeight;
+  return clamp(baseHeight, MIN_BOTTOM_REGION_HEIGHT, maxHeight);
+}
+
+function getRightColumnSplitHeights(
+  ratio: number,
+  totalHeight: number,
+): { topHeight: number; bottomHeight: number } {
+  if (totalHeight <= MIN_RIGHT_PANEL_HEIGHT * 2) {
+    const topHeight = totalHeight / 2;
+    return {
+      topHeight,
+      bottomHeight: totalHeight - topHeight,
+    };
+  }
+
+  const topHeight = clamp(
+    totalHeight * ratio,
+    MIN_RIGHT_PANEL_HEIGHT,
+    totalHeight - MIN_RIGHT_PANEL_HEIGHT,
+  );
+
+  return {
+    topHeight,
+    bottomHeight: totalHeight - topHeight,
+  };
+}
+
 export default function App() {
   const repository = useMemo(() => new StaticJsonRepository(), []);
   const largeScreen = useLargeScreen();
@@ -63,6 +174,20 @@ export default function App() {
   const [mapRetryKey, setMapRetryKey] = useState(0);
 
   const {
+    ref: workspaceRef,
+    setRef: setWorkspaceRef,
+    size: workspaceSize,
+  } = useMeasuredRef<HTMLDivElement>();
+  const {
+    ref: mainRegionRef,
+    setRef: setMainRegionRef,
+    size: mainRegionSize,
+  } = useMeasuredRef<HTMLDivElement>();
+  const { setRef: setBottomMeasureRef, size: bottomContentSize } =
+    useMeasuredRef<HTMLDivElement>();
+  const rightColumnRef = useRef<HTMLDivElement | null>(null);
+
+  const {
     status,
     eras,
     events,
@@ -70,13 +195,18 @@ export default function App() {
     navigation,
     timeFilter,
     panelEventId,
+    layout,
     loadContent,
     setYearFromScrubber,
     selectEraFilter,
     clearTimeFilter,
-    selectEvent,
     openPanel,
     closePanel,
+    togglePanel,
+    resetLayout,
+    setRightColumnWidth,
+    setBottomRegionHeight,
+    setRightColumnSplit,
     issueFlightToken,
   } = useAppStore();
 
@@ -88,6 +218,13 @@ export default function App() {
     attachMap(map);
   }, [attachMap, map]);
 
+  const desktopMapMode = largeScreen && !hasFailed;
+  const panelVisibility = layout.panels;
+  const showRail = desktopMapMode;
+  const showRightColumn = desktopMapMode && (panelVisibility.eventList || panelVisibility.description);
+  const showBottomRegion = panelVisibility.timeline || panelVisibility.chapters;
+  const showStackedDescription = !desktopMapMode && panelVisibility.description;
+
   const timelineEnd = getTimelineEnd(events, new Date().getFullYear());
   const currentEra = getCurrentEra(eras, navigation.year);
   const visibleEvents = getVisibleEvents(events, timeFilter);
@@ -95,7 +232,23 @@ export default function App() {
   const eventGroups = getEventsByEra(eras, visibleEvents);
   const panelEvent = events.find((event) => event.id === panelEventId) ?? null;
   const panelEra = panelEvent ? eras.find((era) => era.id === panelEvent.eraId) ?? null : null;
-  const showListFallback = !largeScreen || hasFailed;
+
+  const bottomRegionHeight = showBottomRegion
+    ? getClampedBottomRegionHeight(
+        layout.bottomRegionHeight,
+        bottomContentSize.scrollHeight,
+        workspaceSize.height,
+      )
+    : 0;
+
+  const rightColumnWidth = showRightColumn
+    ? getClampedRightColumnWidth(layout.rightColumnWidth, mainRegionSize.width)
+    : 0;
+
+  const rightColumnHeights =
+    panelVisibility.eventList && panelVisibility.description
+      ? getRightColumnSplitHeights(layout.rightColumnSplit, mainRegionSize.height)
+      : null;
 
   const completeFlight = useCallback((token: number) => {
     if (useAppStore.getState().navigation.flightToken !== token) {
@@ -150,10 +303,10 @@ export default function App() {
 
   const handleSelectEvent = useCallback(
     (event: StoryEvent) => {
-      selectEvent(event.id);
+      openPanel(event.id);
       focusEventOnMap(event);
     },
-    [focusEventOnMap, selectEvent],
+    [focusEventOnMap, openPanel],
   );
 
   const handleOpenPanel = useCallback(
@@ -169,6 +322,111 @@ export default function App() {
     retryMap();
     setMapRetryKey((current) => current + 1);
   }, [retryMap]);
+
+  const handleTogglePanel = useCallback(
+    (panelId: PanelId) => {
+      togglePanel(panelId);
+    },
+    [togglePanel],
+  );
+
+  const handleResetLayout = useCallback(() => {
+    resetLayout();
+  }, [resetLayout]);
+
+  const handleVerticalDrag = useCallback(
+    (clientX: number) => {
+      const rect = mainRegionRef.current?.getBoundingClientRect();
+      if (!rect) {
+        return;
+      }
+
+      setRightColumnWidth(getClampedRightColumnWidth(rect.right - clientX, rect.width));
+    },
+    [setRightColumnWidth],
+  );
+
+  const handleVerticalStep = useCallback(
+    (delta: number) => {
+      setRightColumnWidth(
+        getClampedRightColumnWidth(layout.rightColumnWidth - delta, mainRegionSize.width),
+      );
+    },
+    [layout.rightColumnWidth, mainRegionSize.width, setRightColumnWidth],
+  );
+
+  const handleBottomDrag = useCallback(
+    (_clientX: number, clientY: number) => {
+      const rect = workspaceRef.current?.getBoundingClientRect();
+      if (!rect) {
+        return;
+      }
+
+      setBottomRegionHeight(
+        getClampedBottomRegionHeight(
+          rect.bottom - clientY,
+          bottomContentSize.scrollHeight,
+          rect.height,
+        ),
+      );
+    },
+    [bottomContentSize.scrollHeight, setBottomRegionHeight],
+  );
+
+  const handleBottomStep = useCallback(
+    (delta: number) => {
+      setBottomRegionHeight(
+        getClampedBottomRegionHeight(
+          bottomRegionHeight - delta,
+          bottomContentSize.scrollHeight,
+          workspaceSize.height,
+        ),
+      );
+    },
+    [bottomContentSize.scrollHeight, bottomRegionHeight, setBottomRegionHeight, workspaceSize.height],
+  );
+
+  const handleRightColumnSplitDrag = useCallback(
+    (_clientX: number, clientY: number) => {
+      const rect = rightColumnRef.current?.getBoundingClientRect();
+      if (!rect || rect.height <= 0) {
+        return;
+      }
+
+      const topHeight =
+        rect.height <= MIN_RIGHT_PANEL_HEIGHT * 2
+          ? rect.height / 2
+          : clamp(
+              clientY - rect.top,
+              MIN_RIGHT_PANEL_HEIGHT,
+              rect.height - MIN_RIGHT_PANEL_HEIGHT,
+            );
+
+      setRightColumnSplit(topHeight / rect.height);
+    },
+    [setRightColumnSplit],
+  );
+
+  const handleRightColumnSplitStep = useCallback(
+    (delta: number) => {
+      if (!rightColumnHeights || mainRegionSize.height <= 0) {
+        return;
+      }
+
+      const totalHeight = mainRegionSize.height;
+      const topHeight =
+        totalHeight <= MIN_RIGHT_PANEL_HEIGHT * 2
+          ? totalHeight / 2
+          : clamp(
+              rightColumnHeights.topHeight + delta,
+              MIN_RIGHT_PANEL_HEIGHT,
+              totalHeight - MIN_RIGHT_PANEL_HEIGHT,
+            );
+
+      setRightColumnSplit(topHeight / totalHeight);
+    },
+    [mainRegionSize.height, rightColumnHeights, setRightColumnSplit],
+  );
 
   if (status === 'loading' || status === 'idle') {
     return (
@@ -233,76 +491,173 @@ export default function App() {
           </div>
         ) : null}
 
-        <section className="grid min-h-0 flex-1 gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
-          <div className="relative min-h-0">
-            {showListFallback ? (
-              <ListFallback
-                groups={eventGroups}
-                currentEraId={currentEra?.id ?? null}
-                selectedEventId={navigation.selectedEventId}
-                onOpenPanel={handleOpenPanel}
-              />
-            ) : (
+        <div ref={setWorkspaceRef} className="flex min-h-0 flex-1 gap-3">
+          <div className="flex min-h-0 flex-1 flex-col">
+            <div ref={setMainRegionRef} className="flex min-h-0 flex-1">
+              {desktopMapMode ? (
+                <>
+                  <div className="min-h-0 min-w-0 flex-1">
+                    <MapCanvas
+                      key={mapRetryKey}
+                      onMapReady={setMap}
+                      onMapUnavailable={reportUnsupported}
+                    />
+                    {map ? (
+                      <EventMarkers
+                        map={map}
+                        events={events}
+                        timeFilter={timeFilter}
+                        selectedEventId={navigation.selectedEventId}
+                        onSelectEvent={handleSelectEvent}
+                        onReadMore={handleOpenPanel}
+                      />
+                    ) : null}
+                  </div>
+
+                  {showRightColumn ? (
+                    <>
+                      <Splitter
+                        orientation="vertical"
+                        ariaLabel="Resize map and side panels"
+                        onDragMove={(clientX) => handleVerticalDrag(clientX)}
+                        onStep={handleVerticalStep}
+                      />
+                      <div
+                        ref={rightColumnRef}
+                        style={{ width: rightColumnWidth }}
+                        className="flex min-h-0 shrink-0 flex-col"
+                      >
+                        {panelVisibility.eventList && panelVisibility.description && rightColumnHeights ? (
+                          <>
+                            <div
+                              style={{ height: rightColumnHeights.topHeight }}
+                              className="min-h-0 shrink-0"
+                            >
+                              <ListFallback
+                                groups={eventGroups}
+                                currentEraId={currentEra?.id ?? null}
+                                selectedEventId={navigation.selectedEventId}
+                                onOpenPanel={handleOpenPanel}
+                              />
+                            </div>
+                            <Splitter
+                              orientation="horizontal"
+                              ariaLabel="Resize event list and description panels"
+                              onDragMove={handleRightColumnSplitDrag}
+                              onStep={handleRightColumnSplitStep}
+                            />
+                            <div
+                              style={{ height: rightColumnHeights.bottomHeight }}
+                              className="min-h-0 shrink-0"
+                            >
+                              <EventPanel
+                                event={panelEvent}
+                                era={panelEra}
+                                onClose={closePanel}
+                              />
+                            </div>
+                          </>
+                        ) : panelVisibility.eventList ? (
+                          <div className="min-h-0 flex-1">
+                            <ListFallback
+                              groups={eventGroups}
+                              currentEraId={currentEra?.id ?? null}
+                              selectedEventId={navigation.selectedEventId}
+                              onOpenPanel={handleOpenPanel}
+                            />
+                          </div>
+                        ) : panelVisibility.description ? (
+                          <div className="min-h-0 flex-1">
+                            <EventPanel
+                              event={panelEvent}
+                              era={panelEra}
+                              onClose={closePanel}
+                            />
+                          </div>
+                        ) : null}
+                      </div>
+                    </>
+                  ) : null}
+                </>
+              ) : (
+                <div className="flex min-h-0 flex-1 flex-col gap-3">
+                  <div className="min-h-0 flex-1">
+                    <ListFallback
+                      groups={eventGroups}
+                      currentEraId={currentEra?.id ?? null}
+                      selectedEventId={navigation.selectedEventId}
+                      onOpenPanel={handleOpenPanel}
+                    />
+                  </div>
+                  {showStackedDescription ? (
+                    <div className="min-h-[12rem] shrink-0">
+                      <EventPanel
+                        event={panelEvent}
+                        era={panelEra}
+                        onClose={closePanel}
+                      />
+                    </div>
+                  ) : null}
+                </div>
+              )}
+            </div>
+
+            {showBottomRegion ? (
               <>
-                <MapCanvas
-                  key={mapRetryKey}
-                  onMapReady={setMap}
-                  onMapUnavailable={reportUnsupported}
-                />
-                {map ? (
-                  <EventMarkers
-                    map={map}
-                    events={events}
-                    timeFilter={timeFilter}
-                    selectedEventId={navigation.selectedEventId}
-                    onSelectEvent={handleSelectEvent}
-                    onReadMore={handleOpenPanel}
+                {desktopMapMode ? (
+                  <Splitter
+                    orientation="horizontal"
+                    ariaLabel="Resize map and bottom panels"
+                    onDragMove={handleBottomDrag}
+                    onStep={handleBottomStep}
                   />
                 ) : null}
+                <div
+                  style={desktopMapMode ? { height: bottomRegionHeight } : undefined}
+                  className={[
+                    'min-h-0 overflow-y-auto',
+                    desktopMapMode ? 'shrink-0' : 'mt-3',
+                  ].join(' ')}
+                >
+                  <div ref={setBottomMeasureRef} className="flex min-h-0 flex-col gap-2">
+                    {panelVisibility.timeline ? (
+                      <div className="rounded-[1.5rem] border border-white/60 bg-[#f8f5ef]/85 shadow-panel backdrop-blur">
+                        <WindowNote
+                          title={windowNote.title}
+                          blurb={windowNote.blurb}
+                          visibleCount={visibleEvents.length}
+                          totalCount={events.length}
+                        />
+                        <Scrubber
+                          minYear={eras[0]?.yearStart ?? 870}
+                          maxYear={timelineEnd}
+                          year={navigation.year}
+                          onYearChange={handleYearChange}
+                        />
+                      </div>
+                    ) : null}
+                    {panelVisibility.chapters ? (
+                      <EraBands
+                        eras={eras}
+                        timeFilter={timeFilter}
+                        onSelectEra={handleEraSelect}
+                        onSelectAll={handleSelectAll}
+                      />
+                    ) : null}
+                  </div>
+                </div>
               </>
-            )}
-            <EventPanel
-              event={panelEvent}
-              era={panelEra}
-              open={panelEvent !== null}
-              onClose={closePanel}
-            />
+            ) : null}
           </div>
 
-          {!showListFallback ? (
-            <div className="hidden min-h-0 xl:block">
-              <ListFallback
-                groups={eventGroups}
-                currentEraId={currentEra?.id ?? null}
-                selectedEventId={navigation.selectedEventId}
-                onOpenPanel={handleOpenPanel}
-              />
-            </div>
+          {showRail ? (
+            <IconRail
+              panels={panelVisibility}
+              onToggle={handleTogglePanel}
+              onReset={handleResetLayout}
+            />
           ) : null}
-        </section>
-
-        <section className="grid shrink-0 gap-2">
-          <div className="rounded-[1.5rem] border border-white/60 bg-[#f8f5ef]/85 shadow-panel backdrop-blur">
-            <WindowNote
-              title={windowNote.title}
-              blurb={windowNote.blurb}
-              visibleCount={visibleEvents.length}
-              totalCount={events.length}
-            />
-            <Scrubber
-              minYear={eras[0]?.yearStart ?? 870}
-              maxYear={timelineEnd}
-              year={navigation.year}
-              onYearChange={handleYearChange}
-            />
-          </div>
-          <EraBands
-            eras={eras}
-            timeFilter={timeFilter}
-            onSelectEra={handleEraSelect}
-            onSelectAll={handleSelectAll}
-          />
-        </section>
+        </div>
       </div>
     </main>
   );

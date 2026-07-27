@@ -3,6 +3,14 @@ import { create } from 'zustand';
 import type { Era, StoryEvent, Tour } from '../data/schema';
 import type { ContentRepository } from '../lib/repository';
 
+const LAYOUT_STORAGE_KEY = 'city-storyline-layout';
+export const MIN_RIGHT_COLUMN_WIDTH = 18 * 16;
+export const MAX_RIGHT_COLUMN_WIDTH = 40 * 16;
+export const DEFAULT_RIGHT_COLUMN_WIDTH = 22 * 16;
+export const MIN_BOTTOM_REGION_HEIGHT = 6 * 16;
+export const DEFAULT_BOTTOM_REGION_HEIGHT = 0;
+export const DEFAULT_RIGHT_COLUMN_SPLIT = 0.5;
+
 export type NavigationMode = 'idle' | 'playing' | 'tour';
 
 export type NavigationState = {
@@ -29,7 +37,99 @@ export const centuryOf = (year: number): number => Math.floor(year / 100);
 
 export const centuryLabel = (century: number): string => `${century}00s`;
 
+export type PanelId =
+  | 'timeline'
+  | 'chapters'
+  | 'eventList'
+  | 'description';
+
+export type PanelVisibility = Record<PanelId, boolean>;
+
+export type LayoutState = {
+  panels: PanelVisibility;
+  rightColumnWidth: number;
+  bottomRegionHeight: number;
+  rightColumnSplit: number;
+};
+
 type AppStatus = 'idle' | 'loading' | 'ready' | 'error';
+
+const defaultPanels: PanelVisibility = {
+  timeline: true,
+  chapters: true,
+  eventList: true,
+  description: true,
+};
+
+const defaultLayoutState: LayoutState = {
+  panels: defaultPanels,
+  rightColumnWidth: DEFAULT_RIGHT_COLUMN_WIDTH,
+  bottomRegionHeight: DEFAULT_BOTTOM_REGION_HEIGHT,
+  rightColumnSplit: DEFAULT_RIGHT_COLUMN_SPLIT,
+};
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
+function parseStoredLayout(): LayoutState {
+  if (typeof window === 'undefined') {
+    return defaultLayoutState;
+  }
+
+  try {
+    const rawValue = window.localStorage.getItem(LAYOUT_STORAGE_KEY);
+    if (!rawValue) {
+      return defaultLayoutState;
+    }
+
+    const parsed = JSON.parse(rawValue) as unknown;
+    if (!isRecord(parsed)) {
+      return defaultLayoutState;
+    }
+
+    const panels = parsed.panels;
+    const rightColumnWidth = parsed.rightColumnWidth;
+    const bottomRegionHeight = parsed.bottomRegionHeight;
+    const rightColumnSplit = parsed.rightColumnSplit;
+
+    if (
+      !isRecord(panels) ||
+      typeof panels.timeline !== 'boolean' ||
+      typeof panels.chapters !== 'boolean' ||
+      typeof panels.eventList !== 'boolean' ||
+      typeof panels.description !== 'boolean' ||
+      typeof rightColumnWidth !== 'number' ||
+      !Number.isFinite(rightColumnWidth) ||
+      rightColumnWidth < MIN_RIGHT_COLUMN_WIDTH ||
+      rightColumnWidth > MAX_RIGHT_COLUMN_WIDTH ||
+      typeof bottomRegionHeight !== 'number' ||
+      !Number.isFinite(bottomRegionHeight) ||
+      bottomRegionHeight < 0 ||
+      (bottomRegionHeight !== 0 && bottomRegionHeight < MIN_BOTTOM_REGION_HEIGHT) ||
+      typeof rightColumnSplit !== 'number' ||
+      !Number.isFinite(rightColumnSplit) ||
+      rightColumnSplit < 0 ||
+      rightColumnSplit > 1
+    ) {
+      return defaultLayoutState;
+    }
+
+    return {
+      panels: {
+        timeline: panels.timeline,
+        chapters: panels.chapters,
+        eventList: panels.eventList,
+        description: panels.description,
+      },
+      rightColumnWidth,
+      bottomRegionHeight,
+      rightColumnSplit,
+    };
+  } catch {
+    return defaultLayoutState;
+  }
+}
 
 type AppStore = {
   status: AppStatus;
@@ -40,6 +140,7 @@ type AppStore = {
   navigation: NavigationState;
   timeFilter: TimeFilter;
   panelEventId: string | null;
+  layout: LayoutState;
   loadContent: (repository: ContentRepository) => Promise<void>;
   setYearFromScrubber: (year: number) => void;
   selectEraFilter: (era: Era) => void;
@@ -48,8 +149,23 @@ type AppStore = {
   selectEvent: (eventId: string | null) => void;
   openPanel: (eventId: string) => void;
   closePanel: () => void;
+  togglePanel: (panelId: PanelId) => void;
+  showPanel: (panelId: PanelId) => void;
+  hidePanel: (panelId: PanelId) => void;
+  resetLayout: () => void;
+  setRightColumnWidth: (width: number) => void;
+  setBottomRegionHeight: (height: number) => void;
+  setRightColumnSplit: (ratio: number) => void;
   issueFlightToken: () => number;
 };
+
+function persistLayout(layout: LayoutState): void {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  window.localStorage.setItem(LAYOUT_STORAGE_KEY, JSON.stringify(layout));
+}
 
 export const useAppStore = create<AppStore>((set, get) => ({
   status: 'idle',
@@ -65,6 +181,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
   },
   timeFilter: { kind: 'all' },
   panelEventId: null,
+  layout: parseStoredLayout(),
   async loadContent(repository) {
     set({ status: 'loading', errorMessage: null });
 
@@ -148,15 +265,112 @@ export const useAppStore = create<AppStore>((set, get) => ({
   openPanel(eventId) {
     set((state) => ({
       panelEventId: eventId,
+      layout: {
+        ...state.layout,
+        panels: {
+          ...state.layout.panels,
+          description: true,
+        },
+      },
       navigation: {
         ...state.navigation,
         mode: 'idle',
         selectedEventId: eventId,
       },
     }));
+    persistLayout(get().layout);
   },
   closePanel() {
-    set({ panelEventId: null });
+    set((state) => ({
+      panelEventId: null,
+      layout: {
+        ...state.layout,
+        panels: {
+          ...state.layout.panels,
+          description: false,
+        },
+      },
+      navigation: {
+        ...state.navigation,
+        selectedEventId: null,
+      },
+    }));
+    persistLayout(get().layout);
+  },
+  togglePanel(panelId) {
+    set((state) => ({
+      layout: {
+        ...state.layout,
+        panels: {
+          ...state.layout.panels,
+          [panelId]: !state.layout.panels[panelId],
+        },
+      },
+    }));
+    persistLayout(get().layout);
+  },
+  showPanel(panelId) {
+    set((state) => ({
+      layout: {
+        ...state.layout,
+        panels: {
+          ...state.layout.panels,
+          [panelId]: true,
+        },
+      },
+    }));
+    persistLayout(get().layout);
+  },
+  hidePanel(panelId) {
+    set((state) => ({
+      layout: {
+        ...state.layout,
+        panels: {
+          ...state.layout.panels,
+          [panelId]: false,
+        },
+      },
+    }));
+    persistLayout(get().layout);
+  },
+  resetLayout() {
+    set((state) => ({
+      layout: {
+        ...defaultLayoutState,
+        panels: { ...defaultPanels },
+      },
+      navigation: {
+        ...state.navigation,
+      },
+    }));
+    persistLayout(get().layout);
+  },
+  setRightColumnWidth(width) {
+    set((state) => ({
+      layout: {
+        ...state.layout,
+        rightColumnWidth: width,
+      },
+    }));
+    persistLayout(get().layout);
+  },
+  setBottomRegionHeight(height) {
+    set((state) => ({
+      layout: {
+        ...state.layout,
+        bottomRegionHeight: height,
+      },
+    }));
+    persistLayout(get().layout);
+  },
+  setRightColumnSplit(ratio) {
+    set((state) => ({
+      layout: {
+        ...state.layout,
+        rightColumnSplit: ratio,
+      },
+    }));
+    persistLayout(get().layout);
   },
   issueFlightToken() {
     const nextToken = get().navigation.flightToken + 1;
