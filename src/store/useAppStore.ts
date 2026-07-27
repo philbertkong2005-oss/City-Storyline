@@ -5,11 +5,13 @@ import type { ContentRepository } from '../lib/repository';
 
 const LAYOUT_STORAGE_KEY = 'city-storyline-layout';
 export const MIN_RIGHT_COLUMN_WIDTH = 18 * 16;
-export const MAX_RIGHT_COLUMN_WIDTH = 40 * 16;
+export const MAX_RIGHT_COLUMN_WIDTH_STACKED = 40 * 16;
+export const MAX_RIGHT_COLUMN_WIDTH_COLUMNS = 64 * 16;
 export const DEFAULT_RIGHT_COLUMN_WIDTH = 22 * 16;
 export const MIN_BOTTOM_REGION_HEIGHT = 6 * 16;
 export const DEFAULT_BOTTOM_REGION_HEIGHT = 0;
 export const DEFAULT_RIGHT_COLUMN_SPLIT = 0.5;
+export const DEFAULT_RIGHT_COLUMN_ORIENTATION = 'stacked';
 
 export type NavigationMode = 'idle' | 'playing' | 'tour';
 
@@ -50,6 +52,7 @@ export type LayoutState = {
   rightColumnWidth: number;
   bottomRegionHeight: number;
   rightColumnSplit: number;
+  rightColumnOrientation: 'stacked' | 'columns';
 };
 
 type AppStatus = 'idle' | 'loading' | 'ready' | 'error';
@@ -66,6 +69,7 @@ const defaultLayoutState: LayoutState = {
   rightColumnWidth: DEFAULT_RIGHT_COLUMN_WIDTH,
   bottomRegionHeight: DEFAULT_BOTTOM_REGION_HEIGHT,
   rightColumnSplit: DEFAULT_RIGHT_COLUMN_SPLIT,
+  rightColumnOrientation: DEFAULT_RIGHT_COLUMN_ORIENTATION,
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -92,6 +96,7 @@ function parseStoredLayout(): LayoutState {
     const rightColumnWidth = parsed.rightColumnWidth;
     const bottomRegionHeight = parsed.bottomRegionHeight;
     const rightColumnSplit = parsed.rightColumnSplit;
+    const rightColumnOrientation = parsed.rightColumnOrientation;
 
     if (
       !isRecord(panels) ||
@@ -102,7 +107,7 @@ function parseStoredLayout(): LayoutState {
       typeof rightColumnWidth !== 'number' ||
       !Number.isFinite(rightColumnWidth) ||
       rightColumnWidth < MIN_RIGHT_COLUMN_WIDTH ||
-      rightColumnWidth > MAX_RIGHT_COLUMN_WIDTH ||
+      rightColumnWidth > MAX_RIGHT_COLUMN_WIDTH_COLUMNS ||
       typeof bottomRegionHeight !== 'number' ||
       !Number.isFinite(bottomRegionHeight) ||
       bottomRegionHeight < 0 ||
@@ -110,7 +115,8 @@ function parseStoredLayout(): LayoutState {
       typeof rightColumnSplit !== 'number' ||
       !Number.isFinite(rightColumnSplit) ||
       rightColumnSplit < 0 ||
-      rightColumnSplit > 1
+      rightColumnSplit > 1 ||
+      (rightColumnOrientation !== 'stacked' && rightColumnOrientation !== 'columns')
     ) {
       return defaultLayoutState;
     }
@@ -125,6 +131,7 @@ function parseStoredLayout(): LayoutState {
       rightColumnWidth,
       bottomRegionHeight,
       rightColumnSplit,
+      rightColumnOrientation,
     };
   } catch {
     return defaultLayoutState;
@@ -156,6 +163,7 @@ type AppStore = {
   setRightColumnWidth: (width: number) => void;
   setBottomRegionHeight: (height: number) => void;
   setRightColumnSplit: (ratio: number) => void;
+  setRightColumnOrientation: (orientation: LayoutState['rightColumnOrientation']) => void;
   issueFlightToken: () => number;
 };
 
@@ -368,6 +376,19 @@ export const useAppStore = create<AppStore>((set, get) => ({
       layout: {
         ...state.layout,
         rightColumnSplit: ratio,
+      },
+    }));
+    persistLayout(get().layout);
+  },
+  setRightColumnOrientation(orientation) {
+    set((state) => ({
+      layout: {
+        ...state.layout,
+        rightColumnOrientation: orientation,
+        rightColumnWidth:
+          orientation === 'stacked'
+            ? Math.min(state.layout.rightColumnWidth, MAX_RIGHT_COLUMN_WIDTH_STACKED)
+            : state.layout.rightColumnWidth,
       },
     }));
     persistLayout(get().layout);

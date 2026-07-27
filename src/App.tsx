@@ -26,7 +26,8 @@ import {
   getEventsByEra,
   getTimelineEnd,
   getVisibleEvents,
-  MAX_RIGHT_COLUMN_WIDTH,
+  MAX_RIGHT_COLUMN_WIDTH_COLUMNS,
+  MAX_RIGHT_COLUMN_WIDTH_STACKED,
   MIN_BOTTOM_REGION_HEIGHT,
   MIN_RIGHT_COLUMN_WIDTH,
   type PanelId,
@@ -35,6 +36,7 @@ import {
 } from './store/useAppStore';
 
 const MIN_RIGHT_PANEL_HEIGHT = 8 * 16;
+const MIN_RIGHT_PANEL_WIDTH = 12 * 16;
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
@@ -114,12 +116,17 @@ function useMeasuredRef<T extends HTMLElement>() {
   return { ref, setRef, size };
 }
 
-function getClampedRightColumnWidth(rawWidth: number, availableWidth: number): number {
-  const maxWidth = Math.min(
-    MAX_RIGHT_COLUMN_WIDTH,
-    Math.max(MIN_RIGHT_COLUMN_WIDTH, availableWidth - 1),
+function getClampedRightColumnWidth(
+  rawWidth: number,
+  availableWidth: number,
+  minWidth: number,
+  maxAllowedWidth: number,
+): number {
+  const resolvedMaxWidth = Math.min(
+    maxAllowedWidth,
+    Math.max(minWidth, availableWidth - 1),
   );
-  return clamp(rawWidth, MIN_RIGHT_COLUMN_WIDTH, maxWidth);
+  return clamp(rawWidth, minWidth, resolvedMaxWidth);
 }
 
 function getClampedBottomRegionHeight(
@@ -156,6 +163,30 @@ function getRightColumnSplitHeights(
   return {
     topHeight,
     bottomHeight: totalHeight - topHeight,
+  };
+}
+
+function getRightColumnSplitWidths(
+  ratio: number,
+  totalWidth: number,
+): { leftWidth: number; rightWidth: number } {
+  if (totalWidth <= MIN_RIGHT_PANEL_WIDTH * 2) {
+    const leftWidth = totalWidth / 2;
+    return {
+      leftWidth,
+      rightWidth: totalWidth - leftWidth,
+    };
+  }
+
+  const leftWidth = clamp(
+    totalWidth * ratio,
+    MIN_RIGHT_PANEL_WIDTH,
+    totalWidth - MIN_RIGHT_PANEL_WIDTH,
+  );
+
+  return {
+    leftWidth,
+    rightWidth: totalWidth - leftWidth,
   };
 }
 
@@ -207,6 +238,7 @@ export default function App() {
     setRightColumnWidth,
     setBottomRegionHeight,
     setRightColumnSplit,
+    setRightColumnOrientation,
     issueFlightToken,
   } = useAppStore();
 
@@ -224,6 +256,11 @@ export default function App() {
   const showRightColumn = desktopMapMode && (panelVisibility.eventList || panelVisibility.description);
   const showBottomRegion = panelVisibility.timeline || panelVisibility.chapters;
   const showStackedDescription = !desktopMapMode && panelVisibility.description;
+  const rightColumnOrientation = layout.rightColumnOrientation;
+  const isRightColumnColumns =
+    rightColumnOrientation === 'columns' &&
+    panelVisibility.eventList &&
+    panelVisibility.description;
 
   const timelineEnd = getTimelineEnd(events, new Date().getFullYear());
   const currentEra = getCurrentEra(eras, navigation.year);
@@ -241,13 +278,32 @@ export default function App() {
       )
     : 0;
 
+  const rightColumnMinWidth = isRightColumnColumns
+    ? Math.max(MIN_RIGHT_COLUMN_WIDTH, MIN_RIGHT_PANEL_WIDTH * 2)
+    : MIN_RIGHT_COLUMN_WIDTH;
+  const rightColumnMaxWidth =
+    rightColumnOrientation === 'columns'
+      ? MAX_RIGHT_COLUMN_WIDTH_COLUMNS
+      : MAX_RIGHT_COLUMN_WIDTH_STACKED;
+
   const rightColumnWidth = showRightColumn
-    ? getClampedRightColumnWidth(layout.rightColumnWidth, mainRegionSize.width)
+    ? getClampedRightColumnWidth(
+        layout.rightColumnWidth,
+        mainRegionSize.width,
+        rightColumnMinWidth,
+        rightColumnMaxWidth,
+      )
     : 0;
 
   const rightColumnHeights =
-    panelVisibility.eventList && panelVisibility.description
+    panelVisibility.eventList &&
+    panelVisibility.description &&
+    rightColumnOrientation === 'stacked'
       ? getRightColumnSplitHeights(layout.rightColumnSplit, mainRegionSize.height)
+      : null;
+  const rightColumnWidths =
+    isRightColumnColumns
+      ? getRightColumnSplitWidths(layout.rightColumnSplit, rightColumnWidth)
       : null;
 
   const completeFlight = useCallback((token: number) => {
@@ -334,6 +390,12 @@ export default function App() {
     resetLayout();
   }, [resetLayout]);
 
+  const handleToggleRightColumnOrientation = useCallback(() => {
+    setRightColumnOrientation(
+      rightColumnOrientation === 'stacked' ? 'columns' : 'stacked',
+    );
+  }, [rightColumnOrientation, setRightColumnOrientation]);
+
   const handleVerticalDrag = useCallback(
     (clientX: number) => {
       const rect = mainRegionRef.current?.getBoundingClientRect();
@@ -341,18 +403,36 @@ export default function App() {
         return;
       }
 
-      setRightColumnWidth(getClampedRightColumnWidth(rect.right - clientX, rect.width));
+      setRightColumnWidth(
+        getClampedRightColumnWidth(
+          rect.right - clientX,
+          rect.width,
+          rightColumnMinWidth,
+          rightColumnMaxWidth,
+        ),
+      );
     },
-    [setRightColumnWidth],
+    [rightColumnMaxWidth, rightColumnMinWidth, setRightColumnWidth],
   );
 
   const handleVerticalStep = useCallback(
     (delta: number) => {
       setRightColumnWidth(
-        getClampedRightColumnWidth(layout.rightColumnWidth - delta, mainRegionSize.width),
+        getClampedRightColumnWidth(
+          layout.rightColumnWidth - delta,
+          mainRegionSize.width,
+          rightColumnMinWidth,
+          rightColumnMaxWidth,
+        ),
       );
     },
-    [layout.rightColumnWidth, mainRegionSize.width, setRightColumnWidth],
+    [
+      layout.rightColumnWidth,
+      mainRegionSize.width,
+      rightColumnMaxWidth,
+      rightColumnMinWidth,
+      setRightColumnWidth,
+    ],
   );
 
   const handleBottomDrag = useCallback(
@@ -387,9 +467,31 @@ export default function App() {
   );
 
   const handleRightColumnSplitDrag = useCallback(
-    (_clientX: number, clientY: number) => {
+    (clientX: number, clientY: number) => {
       const rect = rightColumnRef.current?.getBoundingClientRect();
-      if (!rect || rect.height <= 0) {
+      if (!rect) {
+        return;
+      }
+
+      if (rightColumnOrientation === 'columns') {
+        if (rect.width <= 0) {
+          return;
+        }
+
+        const leftWidth =
+          rect.width <= MIN_RIGHT_PANEL_WIDTH * 2
+            ? rect.width / 2
+            : clamp(
+                clientX - rect.left,
+                MIN_RIGHT_PANEL_WIDTH,
+                rect.width - MIN_RIGHT_PANEL_WIDTH,
+              );
+
+        setRightColumnSplit(leftWidth / rect.width);
+        return;
+      }
+
+      if (rect.height <= 0) {
         return;
       }
 
@@ -404,11 +506,30 @@ export default function App() {
 
       setRightColumnSplit(topHeight / rect.height);
     },
-    [setRightColumnSplit],
+    [rightColumnOrientation, setRightColumnSplit],
   );
 
   const handleRightColumnSplitStep = useCallback(
     (delta: number) => {
+      if (rightColumnOrientation === 'columns') {
+        if (!rightColumnWidths || rightColumnWidth <= 0) {
+          return;
+        }
+
+        const totalWidth = rightColumnWidth;
+        const leftWidth =
+          totalWidth <= MIN_RIGHT_PANEL_WIDTH * 2
+            ? totalWidth / 2
+            : clamp(
+                rightColumnWidths.leftWidth + delta,
+                MIN_RIGHT_PANEL_WIDTH,
+                totalWidth - MIN_RIGHT_PANEL_WIDTH,
+              );
+
+        setRightColumnSplit(leftWidth / totalWidth);
+        return;
+      }
+
       if (!rightColumnHeights || mainRegionSize.height <= 0) {
         return;
       }
@@ -425,7 +546,14 @@ export default function App() {
 
       setRightColumnSplit(topHeight / totalHeight);
     },
-    [mainRegionSize.height, rightColumnHeights, setRightColumnSplit],
+    [
+      mainRegionSize.height,
+      rightColumnHeights,
+      rightColumnOrientation,
+      rightColumnWidth,
+      rightColumnWidths,
+      setRightColumnSplit,
+    ],
   );
 
   if (status === 'loading' || status === 'idle') {
@@ -525,9 +653,15 @@ export default function App() {
                       <div
                         ref={rightColumnRef}
                         style={{ width: rightColumnWidth }}
-                        className="flex min-h-0 shrink-0 flex-col"
+                        className={[
+                          'flex min-h-0 shrink-0',
+                          rightColumnOrientation === 'columns' ? 'flex-row' : 'flex-col',
+                        ].join(' ')}
                       >
-                        {panelVisibility.eventList && panelVisibility.description && rightColumnHeights ? (
+                        {panelVisibility.eventList &&
+                        panelVisibility.description &&
+                        rightColumnOrientation === 'stacked' &&
+                        rightColumnHeights ? (
                           <>
                             <div
                               style={{ height: rightColumnHeights.topHeight }}
@@ -549,6 +683,36 @@ export default function App() {
                             <div
                               style={{ height: rightColumnHeights.bottomHeight }}
                               className="min-h-0 shrink-0"
+                            >
+                              <EventPanel
+                                event={panelEvent}
+                                era={panelEra}
+                                onClose={closePanel}
+                              />
+                            </div>
+                          </>
+                        ) : isRightColumnColumns && rightColumnWidths ? (
+                          <>
+                            <div
+                              style={{ width: rightColumnWidths.leftWidth }}
+                              className="min-h-0 min-w-0 shrink-0"
+                            >
+                              <ListFallback
+                                groups={eventGroups}
+                                currentEraId={currentEra?.id ?? null}
+                                selectedEventId={navigation.selectedEventId}
+                                onOpenPanel={handleOpenPanel}
+                              />
+                            </div>
+                            <Splitter
+                              orientation="vertical"
+                              ariaLabel="Resize event list and description panels"
+                              onDragMove={handleRightColumnSplitDrag}
+                              onStep={handleRightColumnSplitStep}
+                            />
+                            <div
+                              style={{ width: rightColumnWidths.rightWidth }}
+                              className="min-h-0 min-w-0 shrink-0"
                             >
                               <EventPanel
                                 event={panelEvent}
@@ -653,7 +817,10 @@ export default function App() {
           {showRail ? (
             <IconRail
               panels={panelVisibility}
+              rightColumnOrientation={rightColumnOrientation}
+              orientationDisabled={!panelVisibility.eventList || !panelVisibility.description}
               onToggle={handleTogglePanel}
+              onToggleOrientation={handleToggleRightColumnOrientation}
               onReset={handleResetLayout}
             />
           ) : null}

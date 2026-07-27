@@ -1,8 +1,15 @@
-import type { PanelId, PanelVisibility } from '../store/useAppStore';
+import type {
+  LayoutState,
+  PanelId,
+  PanelVisibility,
+} from '../store/useAppStore';
 
 type IconRailProps = {
   panels: PanelVisibility;
+  rightColumnOrientation: LayoutState['rightColumnOrientation'];
+  orientationDisabled: boolean;
   onToggle: (panelId: PanelId) => void;
+  onToggleOrientation: () => void;
   onReset: () => void;
 };
 
@@ -71,6 +78,24 @@ function ResetIcon() {
   );
 }
 
+function StackedColumnsIcon() {
+  return (
+    <svg viewBox="0 0 20 20" aria-hidden="true" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3.5" y="4" width="13" height="4.5" rx="1" />
+      <rect x="3.5" y="11.5" width="13" height="4.5" rx="1" />
+    </svg>
+  );
+}
+
+function SideBySideIcon() {
+  return (
+    <svg viewBox="0 0 20 20" aria-hidden="true" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3.5" y="4" width="5.5" height="12" rx="1" />
+      <rect x="11" y="4" width="5.5" height="12" rx="1" />
+    </svg>
+  );
+}
+
 function iconForPanel(panelId: PanelId) {
   switch (panelId) {
     case 'timeline':
@@ -86,9 +111,19 @@ function iconForPanel(panelId: PanelId) {
 
 export default function IconRail({
   panels,
+  rightColumnOrientation,
+  orientationDisabled,
   onToggle,
+  onToggleOrientation,
   onReset,
 }: IconRailProps) {
+  const nextOrientation =
+    rightColumnOrientation === 'stacked' ? 'columns' : 'stacked';
+  const orientationLabel =
+    nextOrientation === 'columns'
+      ? 'Arrange list and description side by side'
+      : 'Stack list and description';
+
   return (
     <aside className="flex h-full w-[3.25rem] shrink-0 flex-col items-center rounded-[1.5rem] border border-white/60 bg-[#f8f5ef]/80 py-3 shadow-panel backdrop-blur">
       <div className="flex flex-1 flex-col items-center gap-2">
@@ -117,6 +152,24 @@ export default function IconRail({
       </div>
 
       <div className="mb-3 mt-3 h-px w-8 bg-slate-200" />
+
+      <button
+        type="button"
+        title={orientationLabel}
+        aria-label={orientationLabel}
+        disabled={orientationDisabled}
+        onClick={onToggleOrientation}
+        className={[
+          'mb-3 flex h-10 w-10 items-center justify-center rounded-[1rem] border transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900',
+          orientationDisabled
+            ? 'cursor-not-allowed border-slate-200 bg-white/40 text-slate-300'
+            : 'border-slate-300 bg-white/60 text-slate-600 hover:border-slate-500 hover:bg-white hover:text-slate-900',
+        ].join(' ')}
+      >
+        {nextOrientation === 'columns' ? <SideBySideIcon /> : <StackedColumnsIcon />}
+      </button>
+
+      <div className="mb-3 h-px w-8 bg-slate-200" />
 
       <button
         type="button"
