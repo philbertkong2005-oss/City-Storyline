@@ -4,6 +4,8 @@
 
 Tier-0 of a static, single-page historical map of Prague built with React, TypeScript, Vite, Tailwind, MapLibre, Zustand, and Zod.
 
+![City-Storyline: a tilted 3D map of Prague with event markers, a colored building highlight, and a side panel showing an event's photo gallery, timeline, and era chapters](docs/screenshot.jpg)
+
 ## Commands
 
 ```bash
