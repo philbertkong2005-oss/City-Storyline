@@ -120,3 +120,83 @@ MAX_ROUNDS=3 was consumed. The final verdict on record is **REVISE**, and this l
 However, this is a cap-exhaustion, not a deadlock. There is no unresolved disagreement between reviewer and author: both round-3 findings were accepted and applied, and Codex had by then explicitly endorsed both of the plan's two standing rejections (the async repository seam, and retaining OpenFreeMap). The trajectory across rounds was 12 findings → 5 → 2, with severity falling and no finding ever re-raised after being addressed.
 
 What is genuinely unverified: the round-3 fixes have not themselves been reviewed. A fourth round would confirm or refute them. That call belongs to the user.
+
+---
+
+# Act 3 — Build (Codex builds, Claude verifies)
+
+Builder: OpenAI Codex, `gpt-5.4` @ high effort, codex-cli 0.143.0, `--yolo` (full write access, repo root).
+Scope: Tier 0 of the priority ladder only. MAX_FIX_ROUNDS=2.
+PROOF_CMD: `npx tsc --noEmit && npm run validate:content && npm run build`.
+
+### Round 1 — Codex build
+
+Created 34 files / ~2,459 lines: Vite+React+TS+Tailwind scaffold, GitHub Pages workflow, Zod schema,
+8 eras, 23 events (structural fields + scaffold summaries, `body: []`, `images: []`), 3 data-only tours,
+async repository seam, in-repo MapLibre style with building extrusions, navigation store with flight
+tokens, map health checks, markers/popup/panel, list fallback, timeline scrubber and era bands,
+content validator.
+
+Codex reported the proof passing. It did pass.
+
+### Claude's verdict — Round 1: REJECTED
+
+`tsc --noEmit` clean, validator green, `vite build` succeeded. **And the map never rendered once.**
+Every load fell through to the list view. Two fatal defects, neither visible to any automated check:
+
+1. **Tile URL returned empty 200s.** `tiles.openfreemap.org/planet/{z}/{x}/{y}.pbf` was hardcoded.
+   OpenFreeMap serves planet tiles under a dated version segment. Verified with curl:
+   the hardcoded path returns **HTTP 200, 0 bytes**; the versioned path returns **HTTP 200, 9,149 bytes**.
+   Because the status is 200 and not >= 400, `useMapHealth`'s own error counter never tripped — the
+   exact silently-blank-map failure mode the Act 2 review had insisted the health checks must catch.
+   Fix: use the TileJSON endpoint (`url:`) so MapLibre resolves the rotating version itself.
+
+2. **Health-check race — CLAIMED BY CLAUDE, LATER PROVEN WRONG.** See correction below.
+
+Also sent back: sessionStorage made a transient failure permanent across reloads with no recovery
+path; the validator resolved image paths to `public/images/images/...` so every future image would
+report missing; a JSON typo would have thrown the human author a raw Zod stack trace; two identical
+list views rendered side by side at >=1280px; `first-defenestration` sat ~240m south of the New Town
+Hall while flagged `exact`; dead empty-if in `completeFlight`; missing 1600px dimension check.
+
+### Round 2 — Codex fixes
+
+All items addressed. Codex explicitly reported it could **not** drive a browser and therefore would
+not claim the live-render checks — the correct call, and it saved a wasted round.
+
+### Claude's verdict — Round 2: substantively verified, with one correction to my own Round 1 review
+
+**Correction — finding 2 of Round 1 was wrong.** I diagnosed a race in which `attachMap` supposedly
+attached the `styledata` listener after the event had already fired, guaranteeing the 5s timeout.
+That does not happen: MapLibre dispatches `styledata` asynchronously via `browser.frameAsync`, well
+after the listener attaches. The real reason the timer always fired in my harness is that the
+verification browser pane never composites frames — `requestAnimationFrame` **never fires**
+(`visibilityState: "hidden"`), so MapLibre's style loader stalls forever. Environmental, not a code
+defect. Codex's seeding of `styleSeen`/`idleSeen` from `map.isStyleLoaded()`/`map.loaded()` is
+harmless defensive coding and was kept, but it fixed a bug that did not exist.
+
+**What was actually verified.** Re-running the map stack in an isolated harness with `requestAnimationFrame`
+driven off `setTimeout`:
+
+- `styledata` at 663ms, source loaded at 2,844ms, `idle` at 4,669ms with `loaded: true`.
+- TileJSON and glyph endpoints both fetched from OpenFreeMap — the URL fix works.
+- **504 building features in the Staré Město viewport, 501 carrying `render_height` — 99% coverage.**
+- Height distribution: p25 8m, **median 18m**, p75 30m, p95 58m, max 99m, spread across all buckets.
+
+That settles PLAN.md Milestone 1's exit criterion: Prague's historic core has the height data for
+genuine 2.5D, and the plan's flat-map fallback rule (trip below 60% coverage) will not fire.
+It also validates raising the idle timeout to 15s — first idle at 4.7s on a fast connection leaves
+too little headroom under the original 10s.
+
+Independently re-run by Claude: `npx tsc --noEmit` exit 0, `npm run validate:content` exit 0
+(23/23 flagged for prose, as designed), `vite build` succeeded.
+
+All 23 coordinates were spot-checked against known Prague locations. Prague Castle, St Vitus,
+Karolinum, Charles Bridge, Old Town Square, the Old New Synagogue, the Libeň curve, Vinohradská 12,
+Wenceslas Square and Národní třída are accurate to the building; the `approximate`/`area` flags on
+Vítkov, Bílá hora, Josefov, New Town, Brahe/Kepler and the 2002 floods are honest.
+
+**Not verified, and stated as such:** the map rendering inside the full app, marker DOM, popup and
+panel interaction, and visual appearance. The verification pane does not composite frames and
+reported a 0x0 viewport; the Chrome extension was not connected. This requires a human with a real
+browser and is the one open item at hand-off.

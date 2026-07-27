@@ -1,0 +1,175 @@
+import type { StyleSpecification } from 'maplibre-gl';
+
+export const TILE_SOURCE = 'openfreemap';
+
+export const PRAGUE_CENTER: [number, number] = [14.4205, 50.088];
+export const PRAGUE_MAX_BOUNDS: [[number, number], [number, number]] = [
+  [14.22, 49.94],
+  [14.71, 50.18],
+];
+
+export const MAP_STYLE: StyleSpecification = {
+  version: 8,
+  glyphs: 'https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf',
+  sources: {
+    [TILE_SOURCE]: {
+      type: 'vector',
+      url: 'https://tiles.openfreemap.org/planet',
+      attribution:
+        '<a href="https://openfreemap.org/" target="_blank" rel="noopener noreferrer">OpenFreeMap</a> contributors',
+    },
+  },
+  layers: [
+    {
+      id: 'background',
+      type: 'background',
+      paint: {
+        'background-color': '#ebe7de',
+      },
+    },
+    {
+      id: 'water',
+      type: 'fill',
+      source: TILE_SOURCE,
+      'source-layer': 'water',
+      paint: {
+        'fill-color': '#c7d5dd',
+      },
+    },
+    {
+      id: 'parks',
+      type: 'fill',
+      source: TILE_SOURCE,
+      'source-layer': 'landcover',
+      filter: [
+        'match',
+        ['get', 'class'],
+        ['wood', 'grass', 'park', 'cemetery'],
+        true,
+        false,
+      ],
+      paint: {
+        'fill-color': '#dfe2d2',
+        'fill-opacity': 0.7,
+      },
+    },
+    {
+      id: 'roads',
+      type: 'line',
+      source: TILE_SOURCE,
+      'source-layer': 'transportation',
+      paint: {
+        'line-color': '#c3beb4',
+        'line-width': [
+          'interpolate',
+          ['linear'],
+          ['zoom'],
+          11,
+          0.5,
+          16,
+          2.8,
+        ],
+        'line-opacity': 0.7,
+      },
+    },
+    {
+      id: 'bridges',
+      type: 'line',
+      source: TILE_SOURCE,
+      'source-layer': 'transportation',
+      filter: ['==', ['geometry-type'], 'LineString'],
+      paint: {
+        'line-color': '#a9a39a',
+        'line-width': [
+          'interpolate',
+          ['linear'],
+          ['zoom'],
+          11,
+          0.8,
+          16,
+          3.4,
+        ],
+      },
+    },
+    {
+      id: 'building-footprints',
+      type: 'fill',
+      source: TILE_SOURCE,
+      'source-layer': 'building',
+      paint: {
+        'fill-color': '#d8d2c6',
+        'fill-opacity': 0.45,
+      },
+    },
+    {
+      id: 'building-extrusions',
+      type: 'fill-extrusion',
+      source: TILE_SOURCE,
+      'source-layer': 'building',
+      minzoom: 13,
+      paint: {
+        'fill-extrusion-color': '#b6af9f',
+        'fill-extrusion-base': ['coalesce', ['get', 'render_min_height'], 0],
+        'fill-extrusion-height': ['coalesce', ['get', 'render_height'], 12],
+        'fill-extrusion-opacity': 0.94,
+      },
+    },
+    {
+      id: 'district-labels',
+      type: 'symbol',
+      source: TILE_SOURCE,
+      'source-layer': 'place',
+      filter: [
+        'match',
+        ['get', 'class'],
+        ['borough', 'suburb', 'quarter', 'neighbourhood'],
+        true,
+        false,
+      ],
+      layout: {
+        'text-field': ['coalesce', ['get', 'name:en'], ['get', 'name']],
+        'text-font': ['Noto Sans Regular'],
+        'text-size': [
+          'interpolate',
+          ['linear'],
+          ['zoom'],
+          11,
+          11,
+          16,
+          14,
+        ],
+      },
+      paint: {
+        'text-color': '#756f66',
+        'text-halo-color': '#ebe7de',
+        'text-halo-width': 0.8,
+      },
+    },
+    {
+      id: 'street-labels',
+      type: 'symbol',
+      source: TILE_SOURCE,
+      'source-layer': 'transportation_name',
+      minzoom: 13,
+      layout: {
+        'symbol-placement': 'line',
+        'text-field': ['coalesce', ['get', 'name:en'], ['get', 'name']],
+        'text-font': ['Noto Sans Regular'],
+        'text-size': [
+          'interpolate',
+          ['linear'],
+          ['zoom'],
+          13,
+          10,
+          16,
+          12,
+        ],
+      },
+      paint: {
+        'text-color': '#857f75',
+        'text-halo-color': '#ebe7de',
+        'text-halo-width': 0.7,
+      },
+    },
+  ],
+};

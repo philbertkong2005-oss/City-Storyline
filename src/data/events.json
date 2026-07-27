@@ -1,0 +1,400 @@
+[
+  {
+    "id": "prague-castle-founded",
+    "eraId": "premyslid",
+    "title": "Prague Castle founded",
+    "yearStart": 880,
+    "category": "architecture",
+    "locationName": "Prague Castle",
+    "locationPrecision": "exact",
+    "coordinates": {
+      "lng": 14.40056,
+      "lat": 50.09108
+    },
+    "wikipediaUrl": "https://en.wikipedia.org/wiki/Prague_Castle",
+    "summary": "A fortified seat arose at Prague Castle around 880 and became the enduring center of Bohemian power.",
+    "body": [],
+    "images": []
+  },
+  {
+    "id": "vysehrad-royal-seat",
+    "eraId": "premyslid",
+    "title": "Vysehrad becomes a royal seat",
+    "yearStart": 1070,
+    "category": "politics",
+    "locationName": "Vysehrad",
+    "locationPrecision": "exact",
+    "coordinates": {
+      "lng": 14.41778,
+      "lat": 50.065
+    },
+    "wikipediaUrl": "https://en.wikipedia.org/wiki/Vy%C5%A1ehrad",
+    "summary": "Vratislaus II established Vysehrad as a principal royal residence in the later 11th century.",
+    "body": [],
+    "images": []
+  },
+  {
+    "id": "st-vitus-cathedral-begun",
+    "eraId": "charles",
+    "title": "St Vitus Cathedral begun",
+    "yearStart": 1344,
+    "category": "architecture",
+    "locationName": "St Vitus Cathedral",
+    "locationPrecision": "exact",
+    "coordinates": {
+      "lng": 14.40052,
+      "lat": 50.09034
+    },
+    "wikipediaUrl": "https://en.wikipedia.org/wiki/St._Vitus_Cathedral",
+    "summary": "Construction of the present Gothic cathedral at Prague Castle began in 1344 after Prague became an archbishopric.",
+    "body": [],
+    "images": []
+  },
+  {
+    "id": "charles-university-founded",
+    "eraId": "charles",
+    "title": "Charles University founded",
+    "yearStart": 1348,
+    "category": "science",
+    "locationName": "Karolinum",
+    "locationPrecision": "exact",
+    "coordinates": {
+      "lng": 14.4233861,
+      "lat": 50.0863583
+    },
+    "wikipediaUrl": "https://en.wikipedia.org/wiki/Charles_University",
+    "summary": "Charles IV founded Charles University in 1348, creating the first university in Central Europe north of the Alps.",
+    "body": [],
+    "images": []
+  },
+  {
+    "id": "new-town-founded",
+    "eraId": "charles",
+    "title": "New Town founded",
+    "yearStart": 1348,
+    "category": "architecture",
+    "locationName": "Charles Square, Nove Mesto",
+    "locationPrecision": "area",
+    "locationNote": "The foundation reshaped the wider New Town district; this marker sits in Charles Square as its central civic space.",
+    "coordinates": {
+      "lng": 14.41948,
+      "lat": 50.0757
+    },
+    "wikipediaUrl": "https://en.wikipedia.org/wiki/New_Town%2C_Prague",
+    "summary": "Charles IV founded Prague's New Town in 1348 as a vast planned urban extension beyond the Old Town walls.",
+    "body": [],
+    "images": []
+  },
+  {
+    "id": "charles-bridge-begun",
+    "eraId": "charles",
+    "title": "Charles Bridge begun",
+    "yearStart": 1357,
+    "category": "architecture",
+    "locationName": "Charles Bridge",
+    "locationPrecision": "exact",
+    "coordinates": {
+      "lng": 14.41144,
+      "lat": 50.0865
+    },
+    "wikipediaUrl": "https://en.wikipedia.org/wiki/Charles_Bridge",
+    "summary": "Construction of Charles Bridge began in 1357 to replace the flood-damaged Judith Bridge across the Vltava.",
+    "body": [],
+    "images": []
+  },
+  {
+    "id": "first-defenestration",
+    "eraId": "hussite",
+    "title": "First Defenestration of Prague",
+    "yearStart": 1419,
+    "category": "conflict",
+    "locationName": "New Town Hall, Charles Square",
+    "locationPrecision": "exact",
+    "coordinates": {
+      "lng": 14.4211,
+      "lat": 50.0784
+    },
+    "wikipediaUrl": "https://en.wikipedia.org/wiki/First_Defenestration_of_Prague",
+    "summary": "A crowd led by Jan Zelivsky threw town officials from the New Town Hall windows in 1419, helping ignite the Hussite Wars.",
+    "body": [],
+    "images": []
+  },
+  {
+    "id": "battle-of-vitkov-hill",
+    "eraId": "hussite",
+    "title": "Battle of Vitkov Hill",
+    "yearStart": 1420,
+    "category": "conflict",
+    "locationName": "Vitkov Hill",
+    "locationPrecision": "approximate",
+    "locationNote": "The fighting ranged across the ridge above Prague; this marker is placed near the modern Vitkov summit.",
+    "coordinates": {
+      "lng": 14.4481,
+      "lat": 50.0848
+    },
+    "wikipediaUrl": "https://en.wikipedia.org/wiki/Battle_of_V%C3%ADtkov_Hill",
+    "summary": "Hussite forces under Jan Zizka repelled a crusader assault on Vitkov Hill in July 1420.",
+    "body": [],
+    "images": []
+  },
+  {
+    "id": "rudolf-ii-moves-court",
+    "eraId": "rudolfine",
+    "title": "Rudolf II moves his court to Prague",
+    "yearStart": 1583,
+    "category": "politics",
+    "locationName": "Prague Castle",
+    "locationPrecision": "exact",
+    "coordinates": {
+      "lng": 14.40056,
+      "lat": 50.09108
+    },
+    "wikipediaUrl": "https://en.wikipedia.org/wiki/Rudolf_II%2C_Holy_Roman_Emperor",
+    "summary": "Rudolf II transferred his imperial court to Prague in 1583 and made the city a major political and cultural center.",
+    "body": [],
+    "images": []
+  },
+  {
+    "id": "rabbi-loew-and-the-golem",
+    "eraId": "rudolfine",
+    "title": "Rabbi Loew and the Golem tradition",
+    "yearStart": 1592,
+    "category": "religion",
+    "locationName": "Old New Synagogue",
+    "locationPrecision": "exact",
+    "coordinates": {
+      "lng": 14.41861,
+      "lat": 50.09
+    },
+    "wikipediaUrl": "https://en.wikipedia.org/wiki/Judah_Loew_ben_Bezalel",
+    "summary": "Rabbi Judah Loew was a leading Prague scholar in the late 16th century and later folklore tied him to the city's Golem legend.",
+    "body": [],
+    "images": []
+  },
+  {
+    "id": "brahe-and-kepler-in-prague",
+    "eraId": "rudolfine",
+    "title": "Brahe and Kepler in Prague",
+    "yearStart": 1600,
+    "category": "science",
+    "locationName": "Prague Castle / Kepler's Prague",
+    "locationPrecision": "approximate",
+    "locationNote": "Tycho Brahe and Johannes Kepler worked at several Prague sites; this marker is a compromise location in the historic center.",
+    "coordinates": {
+      "lng": 14.41698,
+      "lat": 50.08692
+    },
+    "wikipediaUrl": "https://en.wikipedia.org/wiki/Johannes_Kepler",
+    "summary": "Tycho Brahe and Johannes Kepler worked in Prague around 1600, where Kepler later used Brahe's observations to derive planetary laws.",
+    "body": [],
+    "images": []
+  },
+  {
+    "id": "second-defenestration",
+    "eraId": "white-mountain",
+    "title": "Second Defenestration of Prague",
+    "yearStart": 1618,
+    "category": "conflict",
+    "locationName": "Old Royal Palace, Prague Castle",
+    "locationPrecision": "exact",
+    "coordinates": {
+      "lng": 14.40103,
+      "lat": 50.09088
+    },
+    "wikipediaUrl": "https://en.wikipedia.org/wiki/Second_Defenestration_of_Prague",
+    "summary": "Bohemian nobles hurled imperial governors from a Prague Castle window in 1618, triggering the Bohemian Revolt.",
+    "body": [],
+    "images": []
+  },
+  {
+    "id": "battle-of-white-mountain",
+    "eraId": "white-mountain",
+    "title": "Battle of White Mountain",
+    "yearStart": 1620,
+    "category": "conflict",
+    "locationName": "Bila Hora",
+    "locationPrecision": "approximate",
+    "locationNote": "The battle spread across fields west of the city; this marker is placed near the White Mountain memorial area.",
+    "coordinates": {
+      "lng": 14.33028,
+      "lat": 50.0825
+    },
+    "wikipediaUrl": "https://en.wikipedia.org/wiki/Battle_of_White_Mountain",
+    "summary": "Imperial and Catholic League forces defeated the Bohemian revolt at White Mountain in 1620.",
+    "body": [],
+    "images": []
+  },
+  {
+    "id": "execution-of-27-lords",
+    "eraId": "white-mountain",
+    "title": "Execution of 27 Bohemian lords",
+    "yearStart": 1621,
+    "category": "conflict",
+    "locationName": "Old Town Square",
+    "locationPrecision": "exact",
+    "coordinates": {
+      "lng": 14.4207,
+      "lat": 50.0871
+    },
+    "wikipediaUrl": "https://en.wikipedia.org/wiki/Old_Town_Square",
+    "summary": "Habsburg authorities executed 27 leaders of the Bohemian revolt in Old Town Square on 21 June 1621.",
+    "body": [],
+    "images": []
+  },
+  {
+    "id": "national-theatre-opens",
+    "eraId": "revival",
+    "title": "National Theatre opens",
+    "yearStart": 1881,
+    "category": "culture",
+    "locationName": "National Theatre",
+    "locationPrecision": "exact",
+    "coordinates": {
+      "lng": 14.41388,
+      "lat": 50.0808
+    },
+    "wikipediaUrl": "https://en.wikipedia.org/wiki/National_Theatre_%28Prague%29",
+    "summary": "The National Theatre first opened in 1881 as a major symbol of Czech cultural and political self-assertion.",
+    "body": [],
+    "images": []
+  },
+  {
+    "id": "josefov-clearance",
+    "eraId": "revival",
+    "title": "Josefov clearance",
+    "yearStart": 1893,
+    "yearEnd": 1913,
+    "category": "architecture",
+    "locationName": "Josefov",
+    "locationPrecision": "area",
+    "locationNote": "The redevelopment affected much of the former Jewish Quarter; this marker is placed near its historic core.",
+    "coordinates": {
+      "lng": 14.4199,
+      "lat": 50.0903
+    },
+    "wikipediaUrl": "https://en.wikipedia.org/wiki/Josefov",
+    "summary": "Large parts of Prague's historic Jewish Quarter were demolished and rebuilt between 1893 and 1913 in a sweeping urban clearance.",
+    "body": [],
+    "images": []
+  },
+  {
+    "id": "czechoslovakia-declared",
+    "eraId": "revival",
+    "title": "Czechoslovakia declared",
+    "yearStart": 1918,
+    "category": "politics",
+    "locationName": "Municipal House / Wenceslas Sq",
+    "locationPrecision": "exact",
+    "coordinates": {
+      "lng": 14.4288,
+      "lat": 50.08695
+    },
+    "wikipediaUrl": "https://en.wikipedia.org/wiki/Czechoslovak_declaration_of_independence",
+    "summary": "The Czechoslovak declaration of independence was proclaimed in Prague on 28 October 1918 as Habsburg rule collapsed.",
+    "body": [],
+    "images": []
+  },
+  {
+    "id": "nazi-occupation-begins",
+    "eraId": "occupation",
+    "title": "Nazi occupation begins",
+    "yearStart": 1939,
+    "category": "politics",
+    "locationName": "Prague Castle",
+    "locationPrecision": "exact",
+    "coordinates": {
+      "lng": 14.40056,
+      "lat": 50.09108
+    },
+    "wikipediaUrl": "https://en.wikipedia.org/wiki/German_occupation_of_Czechoslovakia",
+    "summary": "German troops occupied Prague in March 1939 and Prague Castle became the seat of the new Protectorate regime.",
+    "body": [],
+    "images": []
+  },
+  {
+    "id": "heydrich-assassination",
+    "eraId": "occupation",
+    "title": "Heydrich assassination",
+    "yearStart": 1942,
+    "category": "conflict",
+    "locationName": "Liben curve, Prague 8",
+    "locationPrecision": "exact",
+    "coordinates": {
+      "lng": 14.46528,
+      "lat": 50.11778
+    },
+    "wikipediaUrl": "https://en.wikipedia.org/wiki/Assassination_of_Reinhard_Heydrich",
+    "summary": "Czechoslovak resistance fighters attacked Reinhard Heydrich at a bend in Liben in May 1942, prompting brutal Nazi reprisals.",
+    "body": [],
+    "images": []
+  },
+  {
+    "id": "prague-spring-invasion",
+    "eraId": "occupation",
+    "title": "Prague Spring invasion",
+    "yearStart": 1968,
+    "category": "conflict",
+    "locationName": "Czechoslovak Radio building",
+    "locationPrecision": "exact",
+    "coordinates": {
+      "lng": 14.433726,
+      "lat": 50.078346
+    },
+    "wikipediaUrl": "https://en.wikipedia.org/wiki/Warsaw_Pact_invasion_of_Czechoslovakia",
+    "summary": "Warsaw Pact forces invaded Czechoslovakia in August 1968, and fighting around the radio building became one of Prague's defining scenes.",
+    "body": [],
+    "images": []
+  },
+  {
+    "id": "jan-palach-self-immolation",
+    "eraId": "occupation",
+    "title": "Jan Palach self-immolation",
+    "yearStart": 1969,
+    "category": "politics",
+    "locationName": "Wenceslas Square",
+    "locationPrecision": "exact",
+    "coordinates": {
+      "lng": 14.4275,
+      "lat": 50.08139
+    },
+    "wikipediaUrl": "https://en.wikipedia.org/wiki/Jan_Palach",
+    "summary": "Student Jan Palach set himself on fire in Wenceslas Square in January 1969 to protest the post-invasion suppression of reform.",
+    "body": [],
+    "images": []
+  },
+  {
+    "id": "velvet-revolution",
+    "eraId": "velvet",
+    "title": "Velvet Revolution",
+    "yearStart": 1989,
+    "category": "politics",
+    "locationName": "Narodni trida",
+    "locationPrecision": "exact",
+    "coordinates": {
+      "lng": 14.4188,
+      "lat": 50.0812
+    },
+    "wikipediaUrl": "https://en.wikipedia.org/wiki/Velvet_Revolution",
+    "summary": "The police assault on a student march at Narodni trida on 17 November 1989 helped trigger the Velvet Revolution.",
+    "body": [],
+    "images": []
+  },
+  {
+    "id": "vltava-floods",
+    "eraId": "velvet",
+    "title": "Vltava floods",
+    "yearStart": 2002,
+    "category": "disaster",
+    "locationName": "Karlin / Vltava embankment",
+    "locationPrecision": "area",
+    "locationNote": "The flooding affected multiple districts along the river; this marker sits near the Karlin waterfront.",
+    "coordinates": {
+      "lng": 14.4508,
+      "lat": 50.093
+    },
+    "wikipediaUrl": "https://en.wikipedia.org/wiki/2002_European_floods",
+    "summary": "The 2002 floods inundated major parts of Prague, including Karlin and long stretches of the Vltava embankment.",
+    "body": [],
+    "images": []
+  }
+]

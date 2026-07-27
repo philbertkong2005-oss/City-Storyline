@@ -1,0 +1,50 @@
+[
+  {
+    "id": "premyslid",
+    "name": "Founding & the Premyslids",
+    "yearStart": 870,
+    "yearEnd": 1306
+  },
+  {
+    "id": "charles",
+    "name": "The Golden Age of Charles IV",
+    "yearStart": 1306,
+    "yearEnd": 1419
+  },
+  {
+    "id": "hussite",
+    "name": "Hussite Prague",
+    "yearStart": 1419,
+    "yearEnd": 1526
+  },
+  {
+    "id": "rudolfine",
+    "name": "Habsburg & Rudolfine Prague",
+    "yearStart": 1526,
+    "yearEnd": 1618
+  },
+  {
+    "id": "white-mountain",
+    "name": "After White Mountain",
+    "yearStart": 1618,
+    "yearEnd": 1848
+  },
+  {
+    "id": "revival",
+    "name": "National Revival & the First Republic",
+    "yearStart": 1848,
+    "yearEnd": 1939
+  },
+  {
+    "id": "occupation",
+    "name": "Occupation & Communism",
+    "yearStart": 1939,
+    "yearEnd": 1989
+  },
+  {
+    "id": "velvet",
+    "name": "Velvet Revolution & Modern Prague",
+    "yearStart": 1989,
+    "yearEnd": null
+  }
+]

@@ -1,0 +1,37 @@
+[
+  {
+    "id": "royal-prague",
+    "title": "Royal Prague",
+    "summary": "Power moving between castle, river crossing, and royal foundations.",
+    "eventIds": [
+      "prague-castle-founded",
+      "vysehrad-royal-seat",
+      "st-vitus-cathedral-begun",
+      "charles-bridge-begun",
+      "rudolf-ii-moves-court"
+    ]
+  },
+  {
+    "id": "knowledge-and-city-building",
+    "title": "Knowledge and city-building",
+    "summary": "Urban expansion, scholarship, and institutions that reshaped Prague.",
+    "eventIds": [
+      "charles-university-founded",
+      "new-town-founded",
+      "brahe-and-kepler-in-prague",
+      "national-theatre-opens"
+    ]
+  },
+  {
+    "id": "occupation-to-liberation",
+    "title": "Occupation to liberation",
+    "summary": "Sites tied to occupation, resistance, repression, and democratic change.",
+    "eventIds": [
+      "nazi-occupation-begins",
+      "heydrich-assassination",
+      "prague-spring-invasion",
+      "jan-palach-self-immolation",
+      "velvet-revolution"
+    ]
+  }
+]

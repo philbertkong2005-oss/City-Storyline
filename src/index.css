@@ -1,0 +1,136 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: light;
+    --paper: #ebe7de;
+    --ink: #0f172a;
+    --mist: #f8f5ef;
+  }
+
+  html {
+    @apply h-full;
+  }
+
+  body {
+    @apply min-h-full font-sans text-slate-950 antialiased;
+    background:
+      radial-gradient(circle at top left, rgba(255, 255, 255, 0.85), transparent 42%),
+      radial-gradient(circle at bottom right, rgba(203, 213, 225, 0.4), transparent 34%),
+      linear-gradient(160deg, #d9dde2 0%, #ebe7de 32%, #f4efe7 100%);
+  }
+
+  #root {
+    @apply min-h-screen;
+  }
+
+  a {
+    @apply transition;
+  }
+}
+
+@layer utilities {
+  .bg-paper {
+    background-color: var(--paper);
+  }
+}
+
+.timeline-range {
+  height: 1.1rem;
+  cursor: pointer;
+}
+
+.timeline-range::-webkit-slider-runnable-track {
+  height: 0.45rem;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, #d6d3ce 0%, #94a3b8 100%);
+}
+
+.timeline-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  margin-top: -0.42rem;
+  height: 1.25rem;
+  width: 1.25rem;
+  border: 2px solid #f8f5ef;
+  border-radius: 9999px;
+  background: #0f172a;
+  box-shadow: 0 10px 20px rgba(15, 23, 42, 0.25);
+}
+
+.timeline-range::-moz-range-track {
+  height: 0.45rem;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, #d6d3ce 0%, #94a3b8 100%);
+}
+
+.timeline-range::-moz-range-thumb {
+  height: 1.25rem;
+  width: 1.25rem;
+  border: 2px solid #f8f5ef;
+  border-radius: 9999px;
+  background: #0f172a;
+  box-shadow: 0 10px 20px rgba(15, 23, 42, 0.25);
+}
+
+.story-marker {
+  display: inline-flex;
+  height: 1.1rem;
+  width: 1.1rem;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid rgba(15, 23, 42, 0.8);
+  border-radius: 9999px;
+  background: rgba(248, 245, 239, 0.96);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.18);
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    border-color 180ms ease;
+}
+
+.story-marker::after {
+  content: '';
+  height: 0.35rem;
+  width: 0.35rem;
+  border-radius: 9999px;
+  background: #0f172a;
+}
+
+.story-marker--active {
+  opacity: 1;
+  transform: translateY(-5px) scale(1.08);
+}
+
+.story-marker--dimmed {
+  opacity: 0.42;
+  transform: translateY(0) scale(0.98);
+}
+
+.story-marker--hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(6px) scale(0.84);
+}
+
+.story-marker--dashed {
+  border-style: dashed;
+}
+
+.story-marker--selected {
+  box-shadow: 0 0 0 4px rgba(15, 23, 42, 0.12), 0 14px 30px rgba(15, 23, 42, 0.24);
+}
+
+.maplibregl-popup-content {
+  padding: 0 !important;
+  border-radius: 1.5rem !important;
+  box-shadow: 0 24px 48px rgba(15, 23, 42, 0.2) !important;
+}
+
+.maplibregl-popup-tip {
+  border-top-color: #f8f5ef !important;
+}
