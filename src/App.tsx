@@ -185,32 +185,24 @@ export default function App() {
   }
 
   return (
-    <main className="min-h-screen px-4 py-4 md:px-6 md:py-6">
-      <div className="mx-auto flex min-h-[calc(100vh-2rem)] max-w-[1600px] flex-col gap-4">
-        <header className="grid gap-4 rounded-[2rem] border border-white/60 bg-[#f8f5ef]/80 px-6 py-5 shadow-panel backdrop-blur md:grid-cols-[1.2fr_0.8fr]">
-          <div>
+    <main className="h-screen overflow-hidden px-4 py-4 md:px-6 md:py-6">
+      <div className="mx-auto flex h-full max-w-[1600px] flex-col gap-3">
+        <header className="flex shrink-0 flex-wrap items-baseline justify-between gap-x-6 gap-y-1 rounded-[1.5rem] border border-white/60 bg-[#f8f5ef]/80 px-6 py-3 shadow-panel backdrop-blur">
+          <div className="flex items-baseline gap-4">
             <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-slate-500">
               City-Storyline
             </p>
-            <h1 className="mt-2 font-display text-4xl leading-tight text-slate-950 md:text-5xl">
+            <h1 className="font-display text-2xl leading-tight text-slate-950 md:text-[1.75rem]">
               Prague history mapped in time and place.
             </h1>
           </div>
-          <div className="text-sm leading-7 text-slate-700">
-            <p>
-              The timeline drives twenty-three verified event markers across eight chapters, from the founding of Prague Castle to the Vltava floods of 2002.
-            </p>
-            <p className="mt-2">
-              Map unavailable or screen too narrow? The full list view and side panel still work.
-            </p>
-            <p className="mt-2 text-xs uppercase tracking-[0.22em] text-slate-500">
-              {tours.length} tours are validated in data only for later tiers.
-            </p>
-          </div>
+          <p className="text-sm text-slate-600">
+            Twenty-three events across eight chapters, 880 to 2002.
+          </p>
         </header>
 
         {bannerMessage ? (
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-[1.5rem] border border-amber-300/80 bg-amber-50 px-5 py-4 text-sm text-amber-950 shadow-sm">
+          <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 rounded-[1.5rem] border border-amber-300/80 bg-amber-50 px-4 py-2.5 text-sm text-amber-950 shadow-sm">
             <p>{bannerMessage}</p>
             <div className="flex flex-wrap gap-2">
               <button
@@ -231,8 +223,8 @@ export default function App() {
           </div>
         ) : null}
 
-        <section className="grid flex-1 gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
-          <div className="relative min-h-[32rem]">
+        <section className="grid min-h-0 flex-1 gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
+          <div className="relative min-h-0">
             {showListFallback ? (
               <ListFallback
                 groups={eventGroups}
@@ -269,7 +261,7 @@ export default function App() {
           </div>
 
           {!showListFallback ? (
-            <div className="hidden xl:block">
+            <div className="hidden min-h-0 xl:block">
               <ListFallback
                 groups={eventGroups}
                 currentEraId={currentEra?.id ?? null}
@@ -280,7 +272,7 @@ export default function App() {
           ) : null}
         </section>
 
-        <section className="grid gap-4">
+        <section className="grid shrink-0 gap-3">
           <Scrubber
             minYear={eras[0]?.yearStart ?? 870}
             maxYear={timelineEnd}
@@ -290,7 +282,6 @@ export default function App() {
           />
           <EraBands
             eras={eras}
-            timelineEnd={timelineEnd}
             currentEraId={currentEra?.id ?? null}
             onSelectEra={handleEraSelect}
           />
