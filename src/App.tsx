@@ -18,7 +18,7 @@ import Splitter from './components/Splitter';
 import ChapterBands from './components/Timeline/ChapterBands';
 import Scrubber from './components/Timeline/Scrubber';
 import WindowNote from './components/Timeline/WindowNote';
-import { flyToChapter, flyToCoordinates } from './lib/camera';
+import { flyToChapter, flyToCoordinates, flyToLocality } from './lib/camera';
 import { StaticJsonRepository } from './lib/repository';
 import { useMapHealth } from './lib/useMapHealth';
 import {
@@ -242,6 +242,7 @@ export default function App() {
     activeStorylineId,
     events,
     visitablePlaces,
+    localities,
     errorMessage,
     navigation,
     timeFilter,
@@ -384,9 +385,9 @@ export default function App() {
       }
 
       const token = issueFlightToken();
-      flyToCoordinates(map, coordinates, token, completeFlight);
+      flyToCoordinates(map, coordinates, localities, token, completeFlight);
     },
-    [completeFlight, issueFlightToken, map],
+    [completeFlight, issueFlightToken, localities, map],
   );
 
   const focusChapterOnMap = useCallback(
@@ -396,9 +397,24 @@ export default function App() {
       }
 
       const token = issueFlightToken();
-      flyToChapter(map, chapter, resolvedEntries, token, completeFlight);
+      flyToChapter(map, chapter, resolvedEntries, localities, token, completeFlight);
     },
-    [completeFlight, issueFlightToken, map, resolvedEntries],
+    [completeFlight, issueFlightToken, localities, map, resolvedEntries],
+  );
+
+  const handleSelectLocality = useCallback(
+    (localityId: string) => {
+      const locality = localities.find((candidate) => candidate.id === localityId);
+      // The locality *filter* (Decisions #9, #10) is Phase 3; for now a pin click
+      // only travels there.
+      if (!map || !locality) {
+        return;
+      }
+
+      const token = issueFlightToken();
+      flyToLocality(map, locality, token, completeFlight);
+    },
+    [completeFlight, issueFlightToken, localities, map],
   );
 
   const handleYearChange = useCallback(
@@ -735,6 +751,8 @@ export default function App() {
                       onMapReady={setMap}
                       onMapUnavailable={reportUnsupported}
                       activeChapterZone={activeChapterZone}
+                      localities={localities}
+                      onSelectLocality={handleSelectLocality}
                     />
                     {map ? (
                       <EventMarkers

@@ -7,6 +7,7 @@ import maplibregl, {
 } from 'maplibre-gl';
 
 import { nodeCoordinates, type Coordinates } from '../data/schema';
+import { approxMetersBetween } from '../lib/geo';
 import { BUILDING_SOURCE_LAYER, TILE_SOURCE } from '../lib/mapStyle';
 import {
   getEntryMarkerState,
@@ -18,18 +19,6 @@ import EventPopup from './EventPopup';
 type FeatureId = string | number;
 
 const MAX_BUILDING_MATCH_METERS = 200;
-
-/**
- * Rough equirectangular distance, accurate enough at Prague's latitude for a
- * same-city plausibility check — not for anything requiring real precision.
- */
-function approxMetersBetween(a: Coordinates, b: Coordinates): number {
-  const metersPerDegLat = 111_320;
-  const metersPerDegLng = 111_320 * Math.cos((a.lat * Math.PI) / 180);
-  const dLat = (a.lat - b.lat) * metersPerDegLat;
-  const dLng = (a.lng - b.lng) * metersPerDegLng;
-  return Math.sqrt(dLat * dLat + dLng * dLng);
-}
 
 function geometryCenter(geometry: GeoJSON.Geometry): Coordinates | null {
   let minLng = Infinity;

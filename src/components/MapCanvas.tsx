@@ -1,29 +1,36 @@
 import { useEffect, useRef, useState } from 'react';
 import maplibregl, { GeoJSONSource, type Map } from 'maplibre-gl';
 
-import {
-  MAP_STYLE,
-  PRAGUE_CENTER,
-  PRAGUE_MAX_BOUNDS,
-  TILE_SOURCE,
-} from '../lib/mapStyle';
+import type { Locality } from '../data/schema';
+import { MAP_STYLE, PRAGUE_CENTER, TILE_SOURCE } from '../lib/mapStyle';
 import {
   ERA_ZONE_FILL_LAYER,
   ERA_ZONE_OUTLINE_LAYER,
   ERA_ZONE_SOURCE,
   type EraZoneFeature,
 } from '../lib/eraZones';
+import {
+  LOCALITY_CIRCLE_LAYER,
+  LOCALITY_LABEL_LAYER,
+  LOCALITY_PIN_MAX_ZOOM,
+  LOCALITY_SOURCE,
+  toLocalityFeatureCollection,
+} from '../lib/localityPins';
 
 type MapCanvasProps = {
   onMapReady: (map: Map | null) => void;
   onMapUnavailable: () => void;
   activeChapterZone: EraZoneFeature | null;
+  localities: Locality[];
+  onSelectLocality: (localityId: string) => void;
 };
 
 export default function MapCanvas({
   onMapReady,
   onMapUnavailable,
   activeChapterZone,
+  localities,
+  onSelectLocality,
 }: MapCanvasProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<Map | null>(null);
@@ -57,7 +64,11 @@ export default function MapCanvas({
         zoom: 14.5,
         pitch: 55,
         bearing: -20,
-        maxBounds: PRAGUE_MAX_BOUNDS,
+        // No maxBounds (Decision #13). It was the same Prague-shaped assumption as
+        // the validator's global bounding box, expressed in the camera instead of
+        // the data — and it walled the camera off from Karlštejn and Karlovy Vary,
+        // both of which the Charles IV storyline needs to reach. Per-locality
+        // bounds replace it, and they inform rather than imprison.
         cooperativeGestures: false,
       });
     } catch {
@@ -106,7 +117,76 @@ export default function MapCanvas({
       );
     };
 
+    const setUpLocalityLayer = (): void => {
+      if (map?.getSource(LOCALITY_SOURCE)) {
+        return;
+      }
+
+      map?.addSource(LOCALITY_SOURCE, {
+        type: 'geojson',
+        data: { type: 'FeatureCollection', features: [] },
+      });
+
+      // Added last, so pins sit above every other layer: they are navigation
+      // furniture, not part of the depicted world.
+      map?.addLayer({
+        id: LOCALITY_CIRCLE_LAYER,
+        type: 'circle',
+        source: LOCALITY_SOURCE,
+        maxzoom: LOCALITY_PIN_MAX_ZOOM,
+        paint: {
+          'circle-radius': ['interpolate', ['linear'], ['zoom'], 6, 4, 12, 9],
+          'circle-color': '#8c5a2b',
+          'circle-stroke-color': '#f8f5ef',
+          'circle-stroke-width': 2,
+          'circle-opacity': 0.95,
+        },
+      });
+      map?.addLayer({
+        id: LOCALITY_LABEL_LAYER,
+        type: 'symbol',
+        source: LOCALITY_SOURCE,
+        maxzoom: LOCALITY_PIN_MAX_ZOOM,
+        layout: {
+          'text-field': ['get', 'name'],
+          'text-font': ['Noto Sans Regular'],
+          'text-size': ['interpolate', ['linear'], ['zoom'], 6, 11, 12, 14],
+          'text-offset': [0, 1.1],
+          'text-anchor': 'top',
+        },
+        paint: {
+          'text-color': '#5b4327',
+          'text-halo-color': '#f8f5ef',
+          'text-halo-width': 1.4,
+        },
+      });
+    };
+
+    const handleLocalityClick = (
+      event: maplibregl.MapMouseEvent & { features?: maplibregl.MapGeoJSONFeature[] },
+    ): void => {
+      const localityId = event.features?.[0]?.properties?.id;
+      if (typeof localityId === 'string') {
+        onSelectLocality(localityId);
+      }
+    };
+
+    const showPointer = (): void => {
+      if (map) {
+        map.getCanvas().style.cursor = 'pointer';
+      }
+    };
+    const hidePointer = (): void => {
+      if (map) {
+        map.getCanvas().style.cursor = '';
+      }
+    };
+
     map.on('load', setUpEraZoneLayer);
+    map.on('load', setUpLocalityLayer);
+    map.on('click', LOCALITY_CIRCLE_LAYER, handleLocalityClick);
+    map.on('mouseenter', LOCALITY_CIRCLE_LAYER, showPointer);
+    map.on('mouseleave', LOCALITY_CIRCLE_LAYER, hidePointer);
 
     const inspectCoverage = (): void => {
       if (coverageChecked) {
@@ -146,12 +226,44 @@ export default function MapCanvas({
 
     return () => {
       map?.off('load', setUpEraZoneLayer);
+      map?.off('load', setUpLocalityLayer);
+      map?.off('click', LOCALITY_CIRCLE_LAYER, handleLocalityClick);
+      map?.off('mouseenter', LOCALITY_CIRCLE_LAYER, showPointer);
+      map?.off('mouseleave', LOCALITY_CIRCLE_LAYER, hidePointer);
       map?.off('idle', inspectCoverage);
       mapRef.current = null;
       onMapReady(null);
       map?.remove();
     };
-  }, [onMapReady, onMapUnavailable]);
+  }, [onMapReady, onMapUnavailable, onSelectLocality]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) {
+      return;
+    }
+
+    const applyLocalityData = (): void => {
+      const source = map.getSource(LOCALITY_SOURCE);
+      if (!(source instanceof GeoJSONSource)) {
+        return;
+      }
+
+      source.setData(toLocalityFeatureCollection(localities));
+    };
+
+    // Same gating as the era zone below: on source presence, not isStyleLoaded(),
+    // because MapLibre's 'load' fires exactly once for the map's lifetime and a
+    // once('load') registered afterwards never runs.
+    if (map.getSource(LOCALITY_SOURCE)) {
+      applyLocalityData();
+    } else {
+      map.once('load', applyLocalityData);
+      return () => {
+        map.off('load', applyLocalityData);
+      };
+    }
+  }, [localities]);
 
   useEffect(() => {
     const map = mapRef.current;

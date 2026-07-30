@@ -12,11 +12,8 @@ export const DEFAULT_BUILDING_COLOR = '#b6af9f';
 export const EVENT_BUILDING_COLOR = '#c9a227';
 export const SELECTED_EVENT_BUILDING_COLOR = '#d97706';
 
+/** Opening camera position only. Extents now live per-locality in localities.json. */
 export const PRAGUE_CENTER: [number, number] = [14.4205, 50.088];
-export const PRAGUE_MAX_BOUNDS: [[number, number], [number, number]] = [
-  [14.22, 49.94],
-  [14.71, 50.18],
-];
 
 export const MAP_STYLE: StyleSpecification = {
   version: 8,
