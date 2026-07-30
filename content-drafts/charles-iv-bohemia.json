@@ -1,0 +1,373 @@
+{
+  "storyline": {
+    "id": "charles-iv",
+    "type": "person",
+    "title": "Charles IV",
+    "summary": "The Luxembourg prince raised in Paris who returned to a ruined castle and rebuilt Prague into an imperial capital.",
+    "roles": ["king", "emperor", "builder", "patron"],
+    "openingView": {
+      "center": [14.42, 50.0875],
+      "zoom": 14.2,
+      "pitch": 55,
+      "bearing": -20,
+      "localityId": "prague"
+    },
+    "chapters": [
+      {
+        "id": "childhood",
+        "kind": "period",
+        "name": "A Prague childhood, a French education",
+        "shortName": "Childhood",
+        "blurb": "",
+        "yearStart": 1316,
+        "yearEnd": 1333
+      },
+      {
+        "id": "margrave",
+        "kind": "period",
+        "name": "Margrave, and a ruined castle",
+        "shortName": "Margrave",
+        "blurb": "",
+        "yearStart": 1333,
+        "yearEnd": 1346
+      },
+      {
+        "id": "king",
+        "kind": "period",
+        "name": "King of Bohemia",
+        "shortName": "King of Bohemia",
+        "blurb": "",
+        "yearStart": 1346,
+        "yearEnd": 1355
+      },
+      {
+        "id": "emperor",
+        "kind": "period",
+        "name": "Emperor",
+        "shortName": "Emperor",
+        "blurb": "",
+        "yearStart": 1355,
+        "yearEnd": 1365
+      },
+      {
+        "id": "late-reign",
+        "kind": "period",
+        "name": "Late reign, and death",
+        "shortName": "Late reign",
+        "blurb": "",
+        "yearStart": 1365,
+        "yearEnd": 1379
+      },
+      {
+        "id": "today",
+        "kind": "present",
+        "name": "Where to see him today",
+        "shortName": "See him today",
+        "blurb": "",
+        "yearStart": null,
+        "yearEnd": null
+      }
+    ],
+    "entries": [
+      { "ref": "charles-iv-born", "chapterId": "childhood", "order": 1, "note": "" },
+      { "ref": "charles-iv-sent-to-french-court", "chapterId": "childhood", "order": 2, "note": "" },
+
+      { "ref": "charles-iv-returns-to-bohemia", "chapterId": "margrave", "order": 1, "note": "" },
+      { "ref": "prague-archbishopric-founded", "chapterId": "margrave", "order": 2, "note": "" },
+      { "ref": "st-vitus-cathedral-begun", "chapterId": "margrave", "order": 3, "note": "" },
+
+      { "ref": "battle-of-crecy", "chapterId": "king", "order": 1, "note": "" },
+      { "ref": "charles-iv-crowned-king-of-bohemia", "chapterId": "king", "order": 2, "note": "" },
+      { "ref": "emmaus-monastery-founded", "chapterId": "king", "order": 3, "note": "" },
+      { "ref": "new-town-founded", "chapterId": "king", "order": 4, "note": "" },
+      { "ref": "charles-university-founded", "chapterId": "king", "order": 5, "note": "" },
+      { "ref": "karlstejn-castle-founded", "chapterId": "king", "order": 6, "note": "" },
+
+      { "ref": "charles-iv-crowned-emperor", "chapterId": "emperor", "order": 1, "note": "" },
+      { "ref": "golden-bull-of-1356", "chapterId": "emperor", "order": 2, "note": "" },
+      { "ref": "charles-bridge-begun", "chapterId": "emperor", "order": 3, "note": "" },
+      { "ref": "hunger-wall-built", "chapterId": "emperor", "order": 4, "note": "" },
+
+      { "ref": "karlovy-vary-chartered", "chapterId": "late-reign", "order": 1, "note": "" },
+      { "ref": "charles-iv-dies", "chapterId": "late-reign", "order": 2, "note": "" },
+
+      { "ref": "place-charles-iv-tomb", "chapterId": "today", "order": 1, "note": "" },
+      { "ref": "place-st-wenceslas-crown", "chapterId": "today", "order": 2, "note": "" },
+      { "ref": "place-triforium-bust", "chapterId": "today", "order": 3, "note": "" },
+      { "ref": "place-chapel-of-the-holy-cross", "chapterId": "today", "order": 4, "note": "" },
+      { "ref": "place-theodoric-panels", "chapterId": "today", "order": 5, "note": "" },
+      { "ref": "place-carolinum", "chapterId": "today", "order": 6, "note": "" }
+    ]
+  },
+
+  "reusedEvents": [
+    "st-vitus-cathedral-begun",
+    "charles-university-founded",
+    "new-town-founded",
+    "charles-bridge-begun"
+  ],
+
+  "newLocalities": [
+    {
+      "id": "karlstejn",
+      "name": "Karlstejn",
+      "bounds": [[14.16, 49.925], [14.215, 49.952]],
+      "defaultView": { "center": [14.1881, 49.9394], "zoom": 15.6, "pitch": 55, "bearing": -20 }
+    },
+    {
+      "id": "karlovy-vary",
+      "name": "Karlovy Vary",
+      "bounds": [[12.83, 50.2], [12.93, 50.26]],
+      "defaultView": { "center": [12.883, 50.2231], "zoom": 14.6, "pitch": 55, "bearing": -20 }
+    }
+  ],
+
+  "newEvents": [
+    {
+      "id": "charles-iv-born",
+      "title": "Charles IV is born in Prague",
+      "yearStart": 1316,
+      "category": "life",
+      "locationName": "Prague, Old Town",
+      "locationPrecision": "approximate",
+      "locationNote": "Born in Prague on 14 May 1316 and baptised Wenceslas. The building is not securely identified; Prague Castle had stood damaged and largely unused since the fire of 1303.",
+      "coordinates": { "lng": 14.42, "lat": 50.0875 },
+      "wikipediaUrl": "https://en.wikipedia.org/wiki/Charles_IV,_Holy_Roman_Emperor",
+      "summary": "The eldest son of John of Luxembourg and Elizabeth of Bohemia is born in Prague and baptised Wenceslas.",
+      "body": [],
+      "images": []
+    },
+    {
+      "id": "charles-iv-sent-to-french-court",
+      "title": "Sent to the French court",
+      "yearStart": 1323,
+      "yearEnd": 1330,
+      "category": "life",
+      "locationName": "Paris",
+      "locationPrecision": "area",
+      "locationNote": "Off-map for this storyline: outside the Czech lands. Rendered as a narrative step with no marker until the European chapters are added.",
+      "wikipediaUrl": "https://en.wikipedia.org/wiki/Charles_IV,_Holy_Roman_Emperor",
+      "summary": "Aged seven, he is sent to be raised at the court of Charles IV of France, taking the name Charles at confirmation.",
+      "body": [],
+      "images": []
+    },
+    {
+      "id": "charles-iv-returns-to-bohemia",
+      "title": "He returns to a ruined castle",
+      "yearStart": 1333,
+      "category": "architecture",
+      "locationName": "Prague Castle",
+      "locationPrecision": "exact",
+      "locationNote": "The state of the castle on his return is described in his own autobiography, the Vita Caroli — an unusually direct primary source for this project.",
+      "coordinates": { "lng": 14.40056, "lat": 50.09108 },
+      "wikipediaUrl": "https://en.wikipedia.org/wiki/Prague_Castle",
+      "summary": "Returning to Bohemia after a decade abroad, he finds Prague Castle uninhabitable and begins its restoration.",
+      "body": [],
+      "images": []
+    },
+    {
+      "id": "prague-archbishopric-founded",
+      "title": "Prague is raised to an archbishopric",
+      "yearStart": 1344,
+      "category": "religion",
+      "locationName": "St Vitus Cathedral",
+      "locationPrecision": "exact",
+      "coordinates": { "lng": 14.40052, "lat": 50.09034 },
+      "wikipediaUrl": "https://en.wikipedia.org/wiki/Roman_Catholic_Archdiocese_of_Prague",
+      "summary": "Prague is freed from the authority of Mainz and made an archbishopric in its own right, the same year the new cathedral is begun.",
+      "body": [],
+      "images": []
+    },
+    {
+      "id": "battle-of-crecy",
+      "title": "Crecy, and his father's death",
+      "yearStart": 1346,
+      "category": "conflict",
+      "locationName": "Crecy, Picardy",
+      "locationPrecision": "area",
+      "locationNote": "Off-map for this storyline: outside the Czech lands. Rendered as a narrative step with no marker until the European chapters are added.",
+      "wikipediaUrl": "https://en.wikipedia.org/wiki/Battle_of_Cr%C3%A9cy",
+      "summary": "John of Luxembourg, blind for years, is killed charging the English lines; Charles is wounded and becomes King of Bohemia.",
+      "body": [],
+      "images": []
+    },
+    {
+      "id": "charles-iv-crowned-king-of-bohemia",
+      "title": "Crowned King of Bohemia",
+      "yearStart": 1347,
+      "category": "politics",
+      "locationName": "St Vitus Cathedral",
+      "locationPrecision": "exact",
+      "locationNote": "Crowned on 2 September 1347 with the St Wenceslas Crown, which he had commissioned for the occasion and dedicated to the patron saint rather than to himself.",
+      "coordinates": { "lng": 14.40052, "lat": 50.09034 },
+      "wikipediaUrl": "https://en.wikipedia.org/wiki/Crown_of_Saint_Wenceslas",
+      "summary": "He is crowned in the still-unfinished cathedral, wearing a new crown made for the occasion and dedicated to St Wenceslas.",
+      "body": [],
+      "images": []
+    },
+    {
+      "id": "emmaus-monastery-founded",
+      "title": "Emmaus Monastery is founded",
+      "yearStart": 1347,
+      "category": "religion",
+      "locationName": "Emmaus Monastery, Nove Mesto",
+      "locationPrecision": "exact",
+      "coordinates": { "lng": 14.4172, "lat": 50.0745 },
+      "wikipediaUrl": "https://en.wikipedia.org/wiki/Emmaus_Monastery",
+      "summary": "A monastery licensed for the Slavonic liturgy is founded in the new district, an unusual concession in a Latin-rite kingdom.",
+      "body": [],
+      "images": []
+    },
+    {
+      "id": "karlstejn-castle-founded",
+      "title": "Karlstejn Castle is founded",
+      "yearStart": 1348,
+      "category": "architecture",
+      "locationName": "Karlstejn Castle",
+      "locationPrecision": "exact",
+      "coordinates": { "lng": 14.1881, "lat": 49.9394 },
+      "wikipediaUrl": "https://en.wikipedia.org/wiki/Karl%C5%A1tejn_Castle",
+      "summary": "A fortress is begun southwest of Prague to house the imperial regalia and his collection of relics.",
+      "body": [],
+      "images": []
+    },
+    {
+      "id": "charles-iv-crowned-emperor",
+      "title": "Crowned Holy Roman Emperor in Rome",
+      "yearStart": 1355,
+      "category": "politics",
+      "locationName": "Rome",
+      "locationPrecision": "area",
+      "locationNote": "Off-map for this storyline: outside the Czech lands. Rendered as a narrative step with no marker until the European chapters are added.",
+      "wikipediaUrl": "https://en.wikipedia.org/wiki/Charles_IV,_Holy_Roman_Emperor",
+      "summary": "He is crowned emperor in Rome and leaves the same day, having promised the pope he would not stay.",
+      "body": [],
+      "images": []
+    },
+    {
+      "id": "golden-bull-of-1356",
+      "title": "The Golden Bull",
+      "yearStart": 1356,
+      "category": "politics",
+      "locationName": "Nuremberg and Metz",
+      "locationPrecision": "area",
+      "locationNote": "Off-map for this storyline: outside the Czech lands. Rendered as a narrative step with no marker until the European chapters are added.",
+      "wikipediaUrl": "https://en.wikipedia.org/wiki/Golden_Bull_of_1356",
+      "summary": "He fixes the rules for electing a king of the Romans, settling a question that had caused repeated civil war.",
+      "body": [],
+      "images": []
+    },
+    {
+      "id": "hunger-wall-built",
+      "title": "The Hunger Wall on Petrin",
+      "yearStart": 1360,
+      "yearEnd": 1362,
+      "category": "architecture",
+      "locationName": "Petrin slope",
+      "locationPrecision": "area",
+      "locationNote": "Traditionally described as famine-relief work providing wages to the poor. Historians question that account; the wall's defensive purpose is not in doubt.",
+      "coordinates": { "lng": 14.395, "lat": 50.0805 },
+      "wikipediaUrl": "https://en.wikipedia.org/wiki/Hunger_Wall",
+      "summary": "A fortification wall is run across the Petrin slope, remembered in tradition as public works built to feed the poor.",
+      "body": [],
+      "images": []
+    },
+    {
+      "id": "karlovy-vary-chartered",
+      "title": "Karlovy Vary is chartered",
+      "yearStart": 1370,
+      "category": "politics",
+      "locationName": "Karlovy Vary",
+      "locationPrecision": "approximate",
+      "locationNote": "The 1370 charter is documented. The story that he discovered the springs while hunting is tradition, not record.",
+      "coordinates": { "lng": 12.883, "lat": 50.2231 },
+      "wikipediaUrl": "https://en.wikipedia.org/wiki/Karlovy_Vary",
+      "summary": "The spa town at the hot springs in western Bohemia receives its town privileges and his name.",
+      "body": [],
+      "images": []
+    },
+    {
+      "id": "charles-iv-dies",
+      "title": "He dies at Prague Castle",
+      "yearStart": 1378,
+      "category": "life",
+      "locationName": "Prague Castle",
+      "locationPrecision": "exact",
+      "locationNote": "Died 29 November 1378, aged 62. Buried in the royal crypt beneath St Vitus Cathedral after a funeral lasting several days.",
+      "coordinates": { "lng": 14.40056, "lat": 50.09108 },
+      "wikipediaUrl": "https://en.wikipedia.org/wiki/Charles_IV,_Holy_Roman_Emperor",
+      "summary": "He dies at the castle he had rebuilt, and is buried in the cathedral he had begun.",
+      "body": [],
+      "images": []
+    }
+  ],
+
+  "visitablePlaces": [
+    {
+      "id": "place-charles-iv-tomb",
+      "title": "His tomb in the royal crypt",
+      "locationName": "St Vitus Cathedral, royal crypt",
+      "coordinates": { "lng": 14.40052, "lat": 50.09034 },
+      "relatedEventIds": ["charles-iv-dies"],
+      "wikipediaUrl": "https://en.wikipedia.org/wiki/St._Vitus_Cathedral",
+      "summary": "",
+      "body": [],
+      "images": []
+    },
+    {
+      "id": "place-st-wenceslas-crown",
+      "title": "The St Wenceslas Crown",
+      "locationName": "St Vitus Cathedral, Crown Chamber",
+      "coordinates": { "lng": 14.40052, "lat": 50.09034 },
+      "relatedEventIds": ["charles-iv-crowned-king-of-bohemia"],
+      "wikipediaUrl": "https://en.wikipedia.org/wiki/Crown_of_Saint_Wenceslas",
+      "summary": "",
+      "body": [],
+      "images": []
+    },
+    {
+      "id": "place-triforium-bust",
+      "title": "His portrait bust in the triforium",
+      "locationName": "St Vitus Cathedral, triforium",
+      "coordinates": { "lng": 14.40052, "lat": 50.09034 },
+      "relatedEventIds": ["st-vitus-cathedral-begun"],
+      "wikipediaUrl": "https://en.wikipedia.org/wiki/St._Vitus_Cathedral",
+      "summary": "",
+      "body": [],
+      "images": []
+    },
+    {
+      "id": "place-chapel-of-the-holy-cross",
+      "title": "The Chapel of the Holy Cross",
+      "locationName": "Karlstejn Castle, Great Tower",
+      "coordinates": { "lng": 14.1881, "lat": 49.9394 },
+      "relatedEventIds": ["karlstejn-castle-founded"],
+      "wikipediaUrl": "https://en.wikipedia.org/wiki/Karl%C5%A1tejn_Castle",
+      "summary": "",
+      "body": [],
+      "images": []
+    },
+    {
+      "id": "place-theodoric-panels",
+      "title": "Master Theodoric's panel paintings",
+      "locationName": "Karlstejn Castle and the National Gallery Prague",
+      "coordinates": { "lng": 14.1881, "lat": 49.9394 },
+      "relatedEventIds": ["karlstejn-castle-founded"],
+      "wikipediaUrl": "https://en.wikipedia.org/wiki/Master_Theodoric",
+      "summary": "",
+      "body": [],
+      "images": []
+    },
+    {
+      "id": "place-carolinum",
+      "title": "The Carolinum",
+      "locationName": "Karolinum, Old Town",
+      "coordinates": { "lng": 14.4233861, "lat": 50.0863583 },
+      "relatedEventIds": ["charles-university-founded"],
+      "wikipediaUrl": "https://en.wikipedia.org/wiki/Karolinum",
+      "summary": "",
+      "body": [],
+      "images": []
+    }
+  ]
+}
