@@ -1,6 +1,15 @@
 import { create } from 'zustand';
 
-import type { Era, StoryEvent, Tour } from '../data/schema';
+import {
+  type Chapter,
+  type Locality,
+  type PeriodChapter,
+  type StoryEvent,
+  type StoryNode,
+  type Storyline,
+  type StorylineEntry,
+  type VisitablePlace,
+} from '../data/schema';
 import type { ContentRepository } from '../lib/repository';
 
 const LAYOUT_STORAGE_KEY = 'city-storyline-layout';
@@ -33,16 +42,20 @@ export type NavigationState = {
 };
 
 /**
- * Which events are on the map. The era chips and the scrubber are two controls
- * on the same thing — the visible time window — so they share one filter rather
- * than fighting each other.
- *   all     → every event (the default; the map is never empty on arrival)
- *   era     → one chapter, chosen from the chips
+ * Which of the active storyline's entries are on the map. The chapter chips and
+ * the scrubber are two controls on the same thing — the visible time window — so
+ * they share one filter rather than fighting each other.
+ *   all     → every entry (the default; the map is never empty on arrival)
+ *   chapter → one chapter, chosen from the chips
  *   century → everything in the playhead's century, chosen by dragging
+ *
+ * Note this filters *entries*, not events: which chapter a node sits in is a
+ * per-storyline fact now, so the same event can be visible in one storyline's
+ * window and not in another's.
  */
 export type TimeFilter =
   | { kind: 'all' }
-  | { kind: 'era'; eraId: string }
+  | { kind: 'chapter'; chapterId: string }
   | { kind: 'century'; century: number };
 
 export const centuryOf = (year: number): number => Math.floor(year / 100);
@@ -154,19 +167,22 @@ function parseStoredLayout(): LayoutState {
 
 type AppStore = {
   status: AppStatus;
-  eras: Era[];
+  storylines: Storyline[];
+  activeStorylineId: string | null;
   events: StoryEvent[];
-  tours: Tour[];
+  visitablePlaces: VisitablePlace[];
+  localities: Locality[];
   errorMessage: string | null;
   navigation: NavigationState;
   timeFilter: TimeFilter;
   panelEventId: string | null;
   layout: LayoutState;
   loadContent: (repository: ContentRepository) => Promise<void>;
+  setActiveStoryline: (storylineId: string) => void;
   setYearFromScrubber: (year: number) => void;
-  selectEraFilter: (era: Era) => void;
+  selectChapterFilter: (chapter: Chapter) => void;
   clearTimeFilter: () => void;
-  selectEra: (year: number) => void;
+  selectYear: (year: number) => void;
   selectEvent: (eventId: string | null) => void;
   openPanel: (eventId: string) => void;
   closePanel: () => void;
@@ -191,9 +207,11 @@ function persistLayout(layout: LayoutState): void {
 
 export const useAppStore = create<AppStore>((set, get) => ({
   status: 'idle',
-  eras: [],
+  storylines: [],
+  activeStorylineId: null,
   events: [],
-  tours: [],
+  visitablePlaces: [],
+  localities: [],
   errorMessage: null,
   navigation: {
     mode: 'idle',
@@ -208,22 +226,25 @@ export const useAppStore = create<AppStore>((set, get) => ({
     set({ status: 'loading', errorMessage: null });
 
     try {
-      const [eras, events, tours] = await Promise.all([
-        repository.getEras(),
+      const [storylines, events, visitablePlaces, localities] = await Promise.all([
+        repository.getStorylines(),
         repository.getEvents(),
-        repository.getTours(),
+        repository.getVisitablePlaces(),
+        repository.getLocalities(),
       ]);
 
-      const firstEraYear = eras[0]?.yearStart ?? 870;
+      const firstStoryline = storylines[0] ?? null;
       set({
         status: 'ready',
-        eras,
+        storylines,
+        activeStorylineId: firstStoryline?.id ?? null,
         events,
-        tours,
+        visitablePlaces,
+        localities,
         timeFilter: { kind: 'all' },
         navigation: {
           mode: 'idle',
-          year: firstEraYear,
+          year: firstStoryline ? getStorylineStartYear(firstStoryline) : 870,
           selectedEventId: null,
           flightToken: 0,
         },
@@ -235,6 +256,27 @@ export const useAppStore = create<AppStore>((set, get) => ({
           : 'The content could not be loaded.';
       set({ status: 'error', errorMessage: message });
     }
+  },
+  setActiveStoryline(storylineId) {
+    const storyline = get().storylines.find((item) => item.id === storylineId);
+    if (!storyline) {
+      return;
+    }
+
+    // Everything downstream of the storyline is reset, not carried over: a
+    // chapterId from Prague means nothing in Charles IV, and a selected event may
+    // not be in the new storyline at all.
+    set((state) => ({
+      activeStorylineId: storylineId,
+      timeFilter: { kind: 'all' },
+      panelEventId: null,
+      navigation: {
+        ...state.navigation,
+        mode: 'idle',
+        year: getStorylineStartYear(storyline),
+        selectedEventId: null,
+      },
+    }));
   },
   setYearFromScrubber(year) {
     set((state) => ({
@@ -248,13 +290,15 @@ export const useAppStore = create<AppStore>((set, get) => ({
       },
     }));
   },
-  selectEraFilter(era) {
+  selectChapterFilter(chapter) {
     set((state) => ({
-      timeFilter: { kind: 'era', eraId: era.id },
+      timeFilter: { kind: 'chapter', chapterId: chapter.id },
       navigation: {
         ...state.navigation,
         mode: 'idle',
-        year: era.yearStart,
+        // A present-kind chapter has no year to move the playhead to, so it stays
+        // where it was rather than jumping somewhere arbitrary.
+        year: chapter.kind === 'period' ? chapter.yearStart : state.navigation.year,
         selectedEventId: null,
       },
     }));
@@ -265,7 +309,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
       navigation: { ...state.navigation, mode: 'idle', selectedEventId: null },
     }));
   },
-  selectEra(year) {
+  selectYear(year) {
     set((state) => ({
       navigation: {
         ...state.navigation,
@@ -420,93 +464,234 @@ export const useAppStore = create<AppStore>((set, get) => ({
   },
 }));
 
-export function getCurrentEra(eras: Era[], year: number): Era | null {
+export function getPeriodChapters(storyline: Storyline): PeriodChapter[] {
+  return storyline.chapters.filter(
+    (chapter): chapter is PeriodChapter => chapter.kind === 'period',
+  );
+}
+
+export function getStorylineStartYear(storyline: Storyline): number {
+  const periods = getPeriodChapters(storyline);
+  return periods.length > 0
+    ? Math.min(...periods.map((chapter) => chapter.yearStart))
+    : 870;
+}
+
+/**
+ * The scrubber's extent, taken from the storyline rather than the whole corpus.
+ * Tier-0 ran the timeline to the present because Prague's last chapter is open
+ * ended; a person's is not, and a scrubber from 1316 to today for a man who died
+ * in 1378 would be almost entirely dead track.
+ */
+export function getStorylineYearRange(
+  storyline: Storyline,
+  nodes: ResolvedEntry[],
+  currentYear: number,
+): { minYear: number; maxYear: number } {
+  const periods = getPeriodChapters(storyline);
+  const minYear = getStorylineStartYear(storyline);
+  const isOpenEnded = periods.some((chapter) => chapter.yearEnd === null);
+
+  let maxYear = isOpenEnded
+    ? currentYear
+    : // Chapter ranges are half-open, so the last *inclusive* year is yearEnd - 1.
+      // Without the -1 the playhead can be dragged one year past the end of the
+      // final chapter, where getCurrentChapter matches nothing.
+      Math.max(minYear + 1, ...periods.map((chapter) => (chapter.yearEnd ?? minYear) - 1));
+
+  // An event can outlast its chapter's declared end (a span such as the Hunger
+  // Wall, 1360–1362), so the track has to reach it either way.
+  for (const { node } of nodes) {
+    if (node.kind === 'event') {
+      maxYear = Math.max(maxYear, node.event.yearEnd ?? node.event.yearStart);
+    }
+  }
+
+  return { minYear, maxYear };
+}
+
+export function getCurrentChapter(
+  chapters: Chapter[],
+  year: number,
+): PeriodChapter | null {
   return (
-    eras.find((era) => {
-      return year >= era.yearStart && (era.yearEnd === null || year < era.yearEnd);
+    chapters.find((chapter): chapter is PeriodChapter => {
+      if (chapter.kind !== 'period') {
+        return false;
+      }
+      return (
+        year >= chapter.yearStart &&
+        (chapter.yearEnd === null || year < chapter.yearEnd)
+      );
     }) ?? null
   );
 }
 
-export function getTimelineEnd(
-  events: StoryEvent[],
-  currentYear: number,
-): number {
-  const maxEventYear = events.reduce((maxYear, event) => {
-    const eventEnd = event.yearEnd ?? event.yearStart;
-    return Math.max(maxYear, eventEnd);
-  }, currentYear);
+/** An entry paired with the node it points at. */
+export type ResolvedEntry = {
+  entry: StorylineEntry;
+  node: StoryNode;
+};
 
-  return Math.max(currentYear, maxEventYear);
+/**
+ * Walks one storyline's entries and pairs each with its node, in reading order:
+ * chapter order as declared on the storyline, then `entry.order` within a chapter.
+ *
+ * An entry whose `ref` resolves to nothing is dropped rather than thrown on — the
+ * content validator is the gate for dangling refs, and a typo should not blank the
+ * whole app at runtime.
+ */
+export function resolveStorylineEntries(
+  storyline: Storyline,
+  events: StoryEvent[],
+  visitablePlaces: VisitablePlace[],
+): ResolvedEntry[] {
+  const eventsById = new Map(events.map((event) => [event.id, event]));
+  const placesById = new Map(visitablePlaces.map((place) => [place.id, place]));
+  const chapterIndexById = new Map(
+    storyline.chapters.map((chapter, index) => [chapter.id, index]),
+  );
+
+  const resolved: ResolvedEntry[] = [];
+  for (const entry of storyline.entries) {
+    const event = eventsById.get(entry.ref);
+    if (event) {
+      resolved.push({ entry, node: { kind: 'event', event } });
+      continue;
+    }
+
+    const place = placesById.get(entry.ref);
+    if (place) {
+      resolved.push({ entry, node: { kind: 'place', place } });
+    }
+  }
+
+  return resolved.sort((left, right) => {
+    const leftChapter = chapterIndexById.get(left.entry.chapterId) ?? Number.MAX_SAFE_INTEGER;
+    const rightChapter = chapterIndexById.get(right.entry.chapterId) ?? Number.MAX_SAFE_INTEGER;
+    return leftChapter - rightChapter || left.entry.order - right.entry.order;
+  });
 }
 
 export type EventMarkerState = 'hidden' | 'active';
 
 /**
- * An event is on the map when the current window contains it. A span such as the
+ * An entry is in the current window when the filter admits it. A span such as the
  * Josefov clearance (1893–1913) counts as inside a century if any part of it falls
  * there, so it is not lost between two windows.
+ *
+ * A visitable place has no date at all, so it never matches a century — it is
+ * reachable through its own chapter, or through "all".
  */
-export function isEventInWindow(event: StoryEvent, filter: TimeFilter): boolean {
+export function isEntryInWindow(
+  { entry, node }: ResolvedEntry,
+  filter: TimeFilter,
+): boolean {
   switch (filter.kind) {
     case 'all':
       return true;
-    case 'era':
-      return event.eraId === filter.eraId;
+    case 'chapter':
+      return entry.chapterId === filter.chapterId;
     case 'century': {
-      const firstCentury = centuryOf(event.yearStart);
-      const lastCentury = centuryOf(event.yearEnd ?? event.yearStart);
+      if (node.kind !== 'event') {
+        return false;
+      }
+      const firstCentury = centuryOf(node.event.yearStart);
+      const lastCentury = centuryOf(node.event.yearEnd ?? node.event.yearStart);
       return filter.century >= firstCentury && filter.century <= lastCentury;
     }
   }
 }
 
-export function getEventMarkerState(
-  event: StoryEvent,
+export function getEntryMarkerState(
+  resolved: ResolvedEntry,
   filter: TimeFilter,
 ): EventMarkerState {
-  return isEventInWindow(event, filter) ? 'active' : 'hidden';
+  return isEntryInWindow(resolved, filter) ? 'active' : 'hidden';
 }
 
-export function getVisibleEvents(
-  events: StoryEvent[],
+export function getVisibleEntries(
+  entries: ResolvedEntry[],
   filter: TimeFilter,
-): StoryEvent[] {
-  return events.filter((event) => isEventInWindow(event, filter));
+): ResolvedEntry[] {
+  return entries.filter((resolved) => isEntryInWindow(resolved, filter));
+}
+
+/** How a storyline's full span reads in a label: "870 to today", "1316 to 1378". */
+export function describeStorylineSpan(storyline: Storyline): string {
+  const periods = getPeriodChapters(storyline);
+  if (periods.length === 0) {
+    return '';
+  }
+
+  const minYear = Math.min(...periods.map((chapter) => chapter.yearStart));
+  const isOpenEnded = periods.some((chapter) => chapter.yearEnd === null);
+  if (isOpenEnded) {
+    return `${minYear} to today`;
+  }
+
+  // Chapter ranges are half-open, so the last inclusive year is yearEnd - 1.
+  const lastYear = Math.max(...periods.map((chapter) => chapter.yearEnd ?? chapter.yearStart));
+  return `${minYear} to ${lastYear - 1}`;
 }
 
 export function describeTimeFilter(
   filter: TimeFilter,
-  eras: Era[],
+  storyline: Storyline | null,
+  /**
+   * Whether the map is also showing an era zone for this chapter. Only the Prague
+   * chapters have hand-drawn zones, so the "illustrative sketch" caveat has to be
+   * conditional — claiming a zone that is not on screen would be worse than not
+   * mentioning one that is.
+   */
+  hasZone = false,
 ): { title: string; blurb: string } {
+  if (!storyline) {
+    return { title: 'No storyline selected', blurb: '' };
+  }
+
   switch (filter.kind) {
-    case 'era': {
-      const era = eras.find((candidate) => candidate.id === filter.eraId);
-      return era
-        ? {
-            title: era.name,
-            blurb: `${era.blurb} The shaded zone on the map is an illustrative sketch of the city's built-up area in this period, not a surveyed boundary.`,
-          }
-        : { title: 'All of Prague', blurb: '' };
+    case 'chapter': {
+      const chapter = storyline.chapters.find(
+        (candidate) => candidate.id === filter.chapterId,
+      );
+      if (!chapter) {
+        return { title: storyline.title, blurb: '' };
+      }
+
+      const zoneCaveat = hasZone
+        ? " The shaded zone on the map is an illustrative sketch of the city's built-up area in this period, not a surveyed boundary."
+        : '';
+      return {
+        title: chapter.name,
+        blurb: `${chapter.blurb}${zoneCaveat}`.trim(),
+      };
     }
     case 'century':
       return {
         title: centuryLabel(filter.century),
-        blurb: 'Showing every event that falls in this century. Pick a chapter below to read about the period, or choose All to see the whole city at once.',
+        blurb:
+          'Showing every entry that falls in this century. Pick a chapter below to read about the period, or choose All to see the whole storyline at once.',
       };
-    case 'all':
+    case 'all': {
+      const span = describeStorylineSpan(storyline);
       return {
-        title: 'All of Prague, 870 to today',
-        blurb: 'Every event on the map at once. Drag the playhead to narrow to a century, or pick a chapter to focus on one period.',
+        title: span ? `${storyline.title}, ${span}` : storyline.title,
+        blurb:
+          'Every entry on the map at once. Drag the playhead to narrow to a century, or pick a chapter to focus on one part of the story.',
       };
+    }
   }
 }
 
-export function getEventsByEra(eras: Era[], events: StoryEvent[]) {
-  return eras.map((era) => ({
-    era,
-    events: events
-      .filter((event) => event.eraId === era.id)
-      .sort((left, right) => left.yearStart - right.yearStart),
+export function getEntriesByChapter(
+  storyline: Storyline,
+  entries: ResolvedEntry[],
+): Array<{ chapter: Chapter; entries: ResolvedEntry[] }> {
+  return storyline.chapters.map((chapter) => ({
+    chapter,
+    entries: entries
+      .filter((resolved) => resolved.entry.chapterId === chapter.id)
+      .sort((left, right) => left.entry.order - right.entry.order),
   }));
 }

@@ -1,58 +1,98 @@
 import { useEffect, useState } from 'react';
 
-import type { Era, StoryEvent } from '../data/schema';
+import type { Category, Chapter, StoryImage } from '../data/schema';
+import type { ResolvedEntry } from '../store/useAppStore';
 import GalleryLightbox from './GalleryLightbox';
 
 type EventPanelProps = {
-  event: StoryEvent | null;
-  era: Era | null;
+  entry: ResolvedEntry | null;
+  chapter: Chapter | null;
+  storylineTitle: string;
   onClose: () => void;
 };
 
-function formatCategory(category: StoryEvent['category']): string {
+function formatCategory(category: Category): string {
   return category.charAt(0).toUpperCase() + category.slice(1);
 }
 
 export default function EventPanel({
-  event,
-  era,
+  entry,
+  chapter,
+  storylineTitle,
   onClose,
 }: EventPanelProps) {
   const [imageIndex, setImageIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
 
+  const node = entry?.node ?? null;
+  const nodeKey = node
+    ? node.kind === 'event'
+      ? node.event.id
+      : node.place.id
+    : null;
+
   useEffect(() => {
     setImageIndex(0);
     setLightboxOpen(false);
-  }, [event?.id]);
+  }, [nodeKey]);
 
-  const imageCount = event?.images.length ?? 0;
+  // One shared shape for both node kinds, so the panel body is written once. The
+  // fields that only an event has stay narrowed below.
+  const view = node
+    ? node.kind === 'event'
+      ? {
+          title: node.event.title,
+          locationName: node.event.locationName,
+          locationNote: node.event.locationNote,
+          isApproximate: node.event.locationPrecision !== 'exact',
+          hasCoordinates: node.event.coordinates !== undefined,
+          dateLabel: `${node.event.yearStart}${node.event.yearEnd ? `–${node.event.yearEnd}` : ''}`,
+          categoryLabel: formatCategory(node.event.category),
+          summary: node.event.summary,
+          body: node.event.body,
+          images: node.event.images as StoryImage[],
+          wikipediaUrl: node.event.wikipediaUrl,
+        }
+      : {
+          title: node.place.title,
+          locationName: node.place.locationName,
+          locationNote: node.place.locationNote,
+          isApproximate: false,
+          hasCoordinates: true,
+          dateLabel: 'Present day',
+          categoryLabel: 'Place to visit',
+          summary: node.place.summary,
+          body: node.place.body,
+          images: node.place.images as StoryImage[],
+          wikipediaUrl: node.place.wikipediaUrl,
+        }
+    : null;
+
+  const imageCount = view?.images.length ?? 0;
   const activeImage =
-    event && imageCount > 0
-      ? event.images[Math.min(imageIndex, imageCount - 1)]
-      : null;
+    view && imageCount > 0 ? view.images[Math.min(imageIndex, imageCount - 1)] : null;
 
   return (
     <aside className="flex h-full min-h-0 flex-col overflow-hidden rounded-[2rem] border border-white/60 bg-[#f8f5ef]/95 shadow-panel backdrop-blur">
       <div className="flex items-start justify-between border-b border-slate-200/80 px-6 pb-4 pt-5">
-        <div>
+        <div className="min-w-0">
           <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-500">
-            {era?.name ?? 'Description'}
+            {chapter?.name ?? 'Description'}
           </p>
           <h2 className="mt-2 font-display text-3xl leading-tight text-slate-950">
-            {event?.title ?? 'Event details'}
+            {view?.title ?? 'Entry details'}
           </h2>
         </div>
         <button
           type="button"
           onClick={onClose}
-          className="rounded-full border border-slate-300 px-3 py-1 text-sm text-slate-600 transition hover:border-slate-500 hover:text-slate-900"
+          className="ml-4 shrink-0 rounded-full border border-slate-300 px-3 py-1 text-sm text-slate-600 transition hover:border-slate-500 hover:text-slate-900"
         >
           Close
         </button>
       </div>
 
-      {event ? (
+      {view && entry ? (
         <div className="flex-1 overflow-y-auto px-6 pb-6 pt-5">
           <section>
             {activeImage ? (
@@ -127,7 +167,7 @@ export default function EventPanel({
                 </figure>
                 {imageCount > 1 ? (
                   <div className="flex items-center justify-center gap-2">
-                    {event.images.map((image, index) => (
+                    {view.images.map((image, index) => (
                       <span
                         key={image.src}
                         aria-hidden="true"
@@ -142,7 +182,7 @@ export default function EventPanel({
               </div>
             ) : (
               <p className="rounded-2xl border border-dashed border-slate-300 bg-white/70 px-4 py-4 text-sm text-slate-600">
-                No images available for this event yet.
+                No images available for this entry yet.
               </p>
             )}
           </section>
@@ -152,59 +192,80 @@ export default function EventPanel({
               <dt className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
                 Date
               </dt>
-              <dd className="mt-2 text-base text-slate-900">
-                {event.yearStart}
-                {event.yearEnd ? `–${event.yearEnd}` : ''}
-              </dd>
+              <dd className="mt-2 text-base text-slate-900">{view.dateLabel}</dd>
             </div>
             <div className="rounded-2xl bg-white/80 p-4">
               <dt className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
                 Category
               </dt>
-              <dd className="mt-2 text-base text-slate-900">
-                {formatCategory(event.category)}
-              </dd>
+              <dd className="mt-2 text-base text-slate-900">{view.categoryLabel}</dd>
             </div>
             <div className="rounded-2xl bg-white/80 p-4 md:col-span-2">
               <dt className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
                 Location
               </dt>
-              <dd className="mt-2 text-base text-slate-900">{event.locationName}</dd>
-              {event.locationPrecision !== 'exact' && (
+              <dd className="mt-2 text-base text-slate-900">{view.locationName}</dd>
+              {!view.hasCoordinates ? (
                 <p className="mt-2 rounded-2xl border border-amber-300/80 bg-amber-50 px-3 py-2 text-sm text-amber-900">
-                  Approximation note: {event.locationNote ?? 'This marker represents a broader location.'}
+                  Off this map: {view.locationNote ?? 'This happened outside the area shown.'}
                 </p>
-              )}
+              ) : view.isApproximate ? (
+                <p className="mt-2 rounded-2xl border border-amber-300/80 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+                  Approximation note: {view.locationNote ?? 'This marker represents a broader location.'}
+                </p>
+              ) : view.locationNote ? (
+                <p className="mt-2 text-sm leading-6 text-slate-600">{view.locationNote}</p>
+              ) : null}
             </div>
           </dl>
+
+          {/*
+            The load-bearing part of the model. This block is the ONLY thing that
+            changes when the same node is read from a different storyline —
+            everything below it comes from the one shared record.
+          */}
+          {entry.entry.note ? (
+            <section className="mt-6 rounded-2xl border-l-4 border-slate-900 bg-white/80 px-5 py-4">
+              <h3 className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
+                In {storylineTitle}
+              </h3>
+              <p className="mt-2 text-base leading-7 text-slate-900">{entry.entry.note}</p>
+            </section>
+          ) : null}
 
           <section className="mt-6">
             <h3 className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
               Summary
             </h3>
-            <p className="mt-3 text-base leading-7 text-slate-800">{event.summary}</p>
+            {view.summary ? (
+              <p className="mt-3 text-base leading-7 text-slate-800">{view.summary}</p>
+            ) : (
+              <p className="mt-3 rounded-2xl border border-dashed border-slate-300 bg-white/70 px-4 py-4 text-sm text-slate-600">
+                No summary has been written for this entry yet.
+              </p>
+            )}
           </section>
 
           <section className="mt-6">
             <h3 className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
               Story
             </h3>
-            {event.body.length > 0 ? (
+            {view.body.length > 0 ? (
               <div className="mt-3 space-y-4 text-base leading-7 text-slate-800">
-                {event.body.map((paragraph) => (
+                {view.body.map((paragraph) => (
                   <p key={paragraph}>{paragraph}</p>
                 ))}
               </div>
             ) : (
               <p className="mt-3 rounded-2xl border border-dashed border-slate-300 bg-white/70 px-4 py-4 text-sm text-slate-600">
-                Prose has not been written for this event yet.
+                Prose has not been written for this entry yet.
               </p>
             )}
           </section>
 
           <div className="mt-8">
             <a
-              href={event.wikipediaUrl}
+              href={view.wikipediaUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-[#f8f5ef] transition hover:bg-slate-700"
@@ -216,14 +277,14 @@ export default function EventPanel({
       ) : (
         <div className="flex flex-1 items-center px-6 py-6">
           <p className="rounded-2xl border border-dashed border-slate-300 bg-white/70 px-4 py-4 text-sm leading-6 text-slate-600">
-            Select a marker on the map to read about an event.
+            Select a marker on the map to read about an entry.
           </p>
         </div>
       )}
 
-      {lightboxOpen && event && activeImage ? (
+      {lightboxOpen && view && activeImage ? (
         <GalleryLightbox
-          images={event.images}
+          images={view.images}
           index={imageIndex}
           onIndexChange={setImageIndex}
           onClose={() => setLightboxOpen(false)}

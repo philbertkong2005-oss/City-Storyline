@@ -1,10 +1,12 @@
-import type { Era } from '../../data/schema';
+import type { Chapter } from '../../data/schema';
 import type { TimeFilter } from '../../store/useAppStore';
 
-type EraBandsProps = {
-  eras: Era[];
+type ChapterBandsProps = {
+  chapters: Chapter[];
+  /** Full extent of the active storyline, e.g. "870 to today" or "1316 to 1378". */
+  spanLabel: string;
   timeFilter: TimeFilter;
-  onSelectEra: (era: Era) => void;
+  onSelectChapter: (chapter: Chapter) => void;
   onSelectAll: () => void;
 };
 
@@ -14,13 +16,26 @@ const chipOn = 'border-slate-900 bg-slate-900 text-[#f8f5ef]';
 const chipOff =
   'border-slate-200 bg-white/80 text-slate-800 hover:border-slate-400 hover:bg-white';
 
-export default function EraBands({
-  eras,
+/**
+ * Chapter ranges are half-open, so a chapter ending at 1419 is inclusive of 1418.
+ * A present-kind chapter has no range at all (Decision #16).
+ */
+function describeChapterRange(chapter: Chapter): string {
+  if (chapter.kind === 'present') {
+    return 'Today';
+  }
+
+  return `${chapter.yearStart}–${chapter.yearEnd === null ? 'now' : chapter.yearEnd - 1}`;
+}
+
+export default function ChapterBands({
+  chapters,
+  spanLabel,
   timeFilter,
-  onSelectEra,
+  onSelectChapter,
   onSelectAll,
-}: EraBandsProps) {
-  const activeEraId = timeFilter.kind === 'era' ? timeFilter.eraId : null;
+}: ChapterBandsProps) {
+  const activeChapterId = timeFilter.kind === 'chapter' ? timeFilter.chapterId : null;
   const allActive = timeFilter.kind === 'all';
 
   return (
@@ -30,7 +45,7 @@ export default function EraBands({
           type="button"
           onClick={onSelectAll}
           aria-pressed={allActive}
-          title="Show every event, 870 to today"
+          title={`Show every entry, ${spanLabel}`}
           className={[chipBase, allActive ? chipOn : chipOff].join(' ')}
         >
           <p className="font-display text-[0.85rem]">All</p>
@@ -40,24 +55,24 @@ export default function EraBands({
               allActive ? 'text-[#f8f5ef]/70' : 'text-slate-500',
             ].join(' ')}
           >
-            870–now
+            {spanLabel}
           </p>
         </button>
 
-        {eras.map((era) => {
-          const active = activeEraId === era.id;
-          const range = `${era.yearStart}${era.yearEnd === null ? '–now' : `–${era.yearEnd - 1}`}`;
+        {chapters.map((chapter) => {
+          const active = activeChapterId === chapter.id;
+          const range = describeChapterRange(chapter);
 
           return (
             <button
-              key={era.id}
+              key={chapter.id}
               type="button"
-              onClick={() => onSelectEra(era)}
+              onClick={() => onSelectChapter(chapter)}
               aria-pressed={active}
-              title={`${era.name} · ${range}`}
+              title={`${chapter.name} · ${range}`}
               className={[chipBase, active ? chipOn : chipOff].join(' ')}
             >
-              <p className="font-display text-[0.85rem]">{era.shortName}</p>
+              <p className="font-display text-[0.85rem]">{chapter.shortName}</p>
               <p
                 className={[
                   'text-[10px] font-semibold uppercase tracking-[0.14em]',

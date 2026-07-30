@@ -1,0 +1,450 @@
+[
+  {
+    "id": "prague",
+    "type": "place",
+    "title": "Prague",
+    "summary": "",
+    "openingView": {
+      "center": [
+        14.4205,
+        50.088
+      ],
+      "zoom": 14.5,
+      "pitch": 55,
+      "bearing": -20,
+      "localityId": "prague"
+    },
+    "chapters": [
+      {
+        "id": "premyslid",
+        "kind": "period",
+        "name": "Founding & the Přemyslids",
+        "shortName": "Founding",
+        "blurb": "Prague begins as a fortified seat above a ford in the Vltava. The Přemyslid dynasty rules from the castle and from Vyšehrad, while a merchant settlement grows on the riverbank below.",
+        "yearStart": 870,
+        "yearEnd": 1306
+      },
+      {
+        "id": "charles",
+        "kind": "period",
+        "name": "The Golden Age of Charles IV",
+        "shortName": "Charles IV",
+        "blurb": "Charles IV makes Prague the capital of the Holy Roman Empire. He founds the first university north of the Alps, lays out an entire New Town, and begins the cathedral and the bridge that still carry his name.",
+        "yearStart": 1306,
+        "yearEnd": 1419
+      },
+      {
+        "id": "hussite",
+        "kind": "period",
+        "name": "Hussite Prague",
+        "shortName": "Hussite",
+        "blurb": "Religious reform turns to revolt. Councillors are thrown from the windows of the New Town Hall in 1419, and Jan Žižka's forces defeat a crusader army on Vítkov Hill the year after.",
+        "yearStart": 1419,
+        "yearEnd": 1526
+      },
+      {
+        "id": "rudolfine",
+        "kind": "period",
+        "name": "Habsburg & Rudolfine Prague",
+        "shortName": "Rudolfine",
+        "blurb": "Rudolf II moves the imperial court to Prague and fills it with astronomers, alchemists and painters. Tycho Brahe and Johannes Kepler work here, and the Jewish Town gives rise to the legend of Rabbi Loew's Golem.",
+        "yearStart": 1526,
+        "yearEnd": 1618
+      },
+      {
+        "id": "white-mountain",
+        "kind": "period",
+        "name": "After White Mountain",
+        "shortName": "White Mountain",
+        "blurb": "A second defenestration in 1618 helps ignite the Thirty Years' War. Defeat at White Mountain in 1620 and the execution of twenty-seven Czech leaders the following year end Bohemian self-rule for three centuries.",
+        "yearStart": 1618,
+        "yearEnd": 1848
+      },
+      {
+        "id": "revival",
+        "kind": "period",
+        "name": "National Revival & the First Republic",
+        "shortName": "Revival",
+        "blurb": "Czech language and culture reassert themselves. The National Theatre is built by public subscription, the old Jewish quarter is cleared and rebuilt, and Czechoslovakia is declared independent in 1918.",
+        "yearStart": 1848,
+        "yearEnd": 1939
+      },
+      {
+        "id": "occupation",
+        "kind": "period",
+        "name": "Occupation & Communism",
+        "shortName": "Occupation",
+        "blurb": "Fifty years under two dictatorships: Nazi occupation and the reprisals that followed Heydrich's assassination, then a communist state, the crushing of the Prague Spring, and Jan Palach's death in protest.",
+        "yearStart": 1939,
+        "yearEnd": 1989
+      },
+      {
+        "id": "velvet",
+        "kind": "period",
+        "name": "Velvet Revolution & Modern Prague",
+        "shortName": "Velvet",
+        "blurb": "A student march down Národní třída in November 1989 brings down the communist government within weeks. Prague reopens to the world, and in 2002 the Vltava floods the city.",
+        "yearStart": 1989,
+        "yearEnd": null
+      }
+    ],
+    "entries": [
+      {
+        "ref": "prague-castle-founded",
+        "chapterId": "premyslid",
+        "order": 1,
+        "note": ""
+      },
+      {
+        "ref": "vysehrad-royal-seat",
+        "chapterId": "premyslid",
+        "order": 2,
+        "note": ""
+      },
+      {
+        "ref": "st-vitus-cathedral-begun",
+        "chapterId": "charles",
+        "order": 1,
+        "note": ""
+      },
+      {
+        "ref": "charles-university-founded",
+        "chapterId": "charles",
+        "order": 2,
+        "note": ""
+      },
+      {
+        "ref": "new-town-founded",
+        "chapterId": "charles",
+        "order": 3,
+        "note": ""
+      },
+      {
+        "ref": "charles-bridge-begun",
+        "chapterId": "charles",
+        "order": 4,
+        "note": "The city’s second stone bridge across the Vltava."
+      },
+      {
+        "ref": "first-defenestration",
+        "chapterId": "hussite",
+        "order": 1,
+        "note": ""
+      },
+      {
+        "ref": "battle-of-vitkov-hill",
+        "chapterId": "hussite",
+        "order": 2,
+        "note": ""
+      },
+      {
+        "ref": "rudolf-ii-moves-court",
+        "chapterId": "rudolfine",
+        "order": 1,
+        "note": ""
+      },
+      {
+        "ref": "rabbi-loew-and-the-golem",
+        "chapterId": "rudolfine",
+        "order": 2,
+        "note": ""
+      },
+      {
+        "ref": "brahe-and-kepler-in-prague",
+        "chapterId": "rudolfine",
+        "order": 3,
+        "note": ""
+      },
+      {
+        "ref": "second-defenestration",
+        "chapterId": "white-mountain",
+        "order": 1,
+        "note": ""
+      },
+      {
+        "ref": "battle-of-white-mountain",
+        "chapterId": "white-mountain",
+        "order": 2,
+        "note": ""
+      },
+      {
+        "ref": "execution-of-27-lords",
+        "chapterId": "white-mountain",
+        "order": 3,
+        "note": ""
+      },
+      {
+        "ref": "national-theatre-opens",
+        "chapterId": "revival",
+        "order": 1,
+        "note": ""
+      },
+      {
+        "ref": "josefov-clearance",
+        "chapterId": "revival",
+        "order": 2,
+        "note": ""
+      },
+      {
+        "ref": "czechoslovakia-declared",
+        "chapterId": "revival",
+        "order": 3,
+        "note": ""
+      },
+      {
+        "ref": "nazi-occupation-begins",
+        "chapterId": "occupation",
+        "order": 1,
+        "note": ""
+      },
+      {
+        "ref": "heydrich-assassination",
+        "chapterId": "occupation",
+        "order": 2,
+        "note": ""
+      },
+      {
+        "ref": "prague-spring-invasion",
+        "chapterId": "occupation",
+        "order": 3,
+        "note": ""
+      },
+      {
+        "ref": "jan-palach-self-immolation",
+        "chapterId": "occupation",
+        "order": 4,
+        "note": ""
+      },
+      {
+        "ref": "velvet-revolution",
+        "chapterId": "velvet",
+        "order": 1,
+        "note": ""
+      },
+      {
+        "ref": "vltava-floods",
+        "chapterId": "velvet",
+        "order": 2,
+        "note": ""
+      }
+    ]
+  },
+  {
+    "id": "charles-iv",
+    "type": "person",
+    "title": "Charles IV",
+    "summary": "The Luxembourg prince raised in Paris who returned to a ruined castle and rebuilt Prague into an imperial capital.",
+    "roles": [
+      "king",
+      "emperor",
+      "builder",
+      "patron"
+    ],
+    "openingView": {
+      "center": [
+        14.42,
+        50.0875
+      ],
+      "zoom": 14.2,
+      "pitch": 55,
+      "bearing": -20,
+      "localityId": "prague"
+    },
+    "chapters": [
+      {
+        "id": "childhood",
+        "kind": "period",
+        "name": "A Prague childhood, a French education",
+        "shortName": "Childhood",
+        "blurb": "",
+        "yearStart": 1316,
+        "yearEnd": 1333
+      },
+      {
+        "id": "margrave",
+        "kind": "period",
+        "name": "Margrave, and a ruined castle",
+        "shortName": "Margrave",
+        "blurb": "",
+        "yearStart": 1333,
+        "yearEnd": 1346
+      },
+      {
+        "id": "king",
+        "kind": "period",
+        "name": "King of Bohemia",
+        "shortName": "King of Bohemia",
+        "blurb": "",
+        "yearStart": 1346,
+        "yearEnd": 1355
+      },
+      {
+        "id": "emperor",
+        "kind": "period",
+        "name": "Emperor",
+        "shortName": "Emperor",
+        "blurb": "",
+        "yearStart": 1355,
+        "yearEnd": 1365
+      },
+      {
+        "id": "late-reign",
+        "kind": "period",
+        "name": "Late reign, and death",
+        "shortName": "Late reign",
+        "blurb": "",
+        "yearStart": 1365,
+        "yearEnd": 1379
+      },
+      {
+        "id": "today",
+        "kind": "present",
+        "name": "Where to see him today",
+        "shortName": "See him today",
+        "blurb": "",
+        "yearStart": null,
+        "yearEnd": null
+      }
+    ],
+    "entries": [
+      {
+        "ref": "charles-iv-born",
+        "chapterId": "childhood",
+        "order": 1,
+        "note": ""
+      },
+      {
+        "ref": "charles-iv-sent-to-french-court",
+        "chapterId": "childhood",
+        "order": 2,
+        "note": ""
+      },
+      {
+        "ref": "charles-iv-returns-to-bohemia",
+        "chapterId": "margrave",
+        "order": 1,
+        "note": ""
+      },
+      {
+        "ref": "prague-archbishopric-founded",
+        "chapterId": "margrave",
+        "order": 2,
+        "note": ""
+      },
+      {
+        "ref": "st-vitus-cathedral-begun",
+        "chapterId": "margrave",
+        "order": 3,
+        "note": "The cathedral he began the same year Prague became an archbishopric, and where he was crowned, married, and buried."
+      },
+      {
+        "ref": "battle-of-crecy",
+        "chapterId": "king",
+        "order": 1,
+        "note": ""
+      },
+      {
+        "ref": "charles-iv-crowned-king-of-bohemia",
+        "chapterId": "king",
+        "order": 2,
+        "note": ""
+      },
+      {
+        "ref": "emmaus-monastery-founded",
+        "chapterId": "king",
+        "order": 3,
+        "note": ""
+      },
+      {
+        "ref": "new-town-founded",
+        "chapterId": "king",
+        "order": 4,
+        "note": "A planned district roughly the size of the existing city, laid out around three great market squares."
+      },
+      {
+        "ref": "charles-university-founded",
+        "chapterId": "king",
+        "order": 5,
+        "note": "The first university north of the Alps and east of Paris, founded in the same year as the New Town and Karlštejn."
+      },
+      {
+        "ref": "karlstejn-castle-founded",
+        "chapterId": "king",
+        "order": 6,
+        "note": ""
+      },
+      {
+        "ref": "charles-iv-crowned-emperor",
+        "chapterId": "emperor",
+        "order": 1,
+        "note": ""
+      },
+      {
+        "ref": "golden-bull-of-1356",
+        "chapterId": "emperor",
+        "order": 2,
+        "note": ""
+      },
+      {
+        "ref": "charles-bridge-begun",
+        "chapterId": "emperor",
+        "order": 3,
+        "note": "The crossing he commissioned, whose foundation stone he laid himself at a moment his astrologers chose."
+      },
+      {
+        "ref": "hunger-wall-built",
+        "chapterId": "emperor",
+        "order": 4,
+        "note": ""
+      },
+      {
+        "ref": "karlovy-vary-chartered",
+        "chapterId": "late-reign",
+        "order": 1,
+        "note": ""
+      },
+      {
+        "ref": "charles-iv-dies",
+        "chapterId": "late-reign",
+        "order": 2,
+        "note": ""
+      },
+      {
+        "ref": "place-charles-iv-tomb",
+        "chapterId": "today",
+        "order": 1,
+        "note": ""
+      },
+      {
+        "ref": "place-st-wenceslas-crown",
+        "chapterId": "today",
+        "order": 2,
+        "note": ""
+      },
+      {
+        "ref": "place-triforium-bust",
+        "chapterId": "today",
+        "order": 3,
+        "note": ""
+      },
+      {
+        "ref": "place-chapel-of-the-holy-cross",
+        "chapterId": "today",
+        "order": 4,
+        "note": ""
+      },
+      {
+        "ref": "place-theodoric-panels",
+        "chapterId": "today",
+        "order": 5,
+        "note": ""
+      },
+      {
+        "ref": "place-carolinum",
+        "chapterId": "today",
+        "order": 6,
+        "note": ""
+      }
+    ]
+  }
+]

@@ -6,9 +6,13 @@ import maplibregl, {
   type Popup,
 } from 'maplibre-gl';
 
-import type { StoryEvent } from '../data/schema';
+import { nodeCoordinates, type Coordinates } from '../data/schema';
 import { BUILDING_SOURCE_LAYER, TILE_SOURCE } from '../lib/mapStyle';
-import { getEventMarkerState, type TimeFilter } from '../store/useAppStore';
+import {
+  getEntryMarkerState,
+  type ResolvedEntry,
+  type TimeFilter,
+} from '../store/useAppStore';
 import EventPopup from './EventPopup';
 
 type FeatureId = string | number;
@@ -19,10 +23,7 @@ const MAX_BUILDING_MATCH_METERS = 200;
  * Rough equirectangular distance, accurate enough at Prague's latitude for a
  * same-city plausibility check — not for anything requiring real precision.
  */
-function approxMetersBetween(
-  a: { lng: number; lat: number },
-  b: { lng: number; lat: number },
-): number {
+function approxMetersBetween(a: Coordinates, b: Coordinates): number {
   const metersPerDegLat = 111_320;
   const metersPerDegLng = 111_320 * Math.cos((a.lat * Math.PI) / 180);
   const dLat = (a.lat - b.lat) * metersPerDegLat;
@@ -30,7 +31,7 @@ function approxMetersBetween(
   return Math.sqrt(dLat * dLat + dLng * dLng);
 }
 
-function geometryCenter(geometry: GeoJSON.Geometry): { lng: number; lat: number } | null {
+function geometryCenter(geometry: GeoJSON.Geometry): Coordinates | null {
   let minLng = Infinity;
   let maxLng = -Infinity;
   let minLat = Infinity;
@@ -74,12 +75,57 @@ type MarkerRecord = {
 
 type EventMarkersProps = {
   map: MapLibreMap;
-  events: StoryEvent[];
+  /** The active storyline's entries. Membership, not the whole corpus. */
+  entries: ResolvedEntry[];
   timeFilter: TimeFilter;
   selectedEventId: string | null;
-  onSelectEvent: (event: StoryEvent) => void;
-  onReadMore: (event: StoryEvent) => void;
+  onSelectEntry: (entry: ResolvedEntry) => void;
+  onReadMore: (entry: ResolvedEntry) => void;
 };
+
+type MarkerFacts = {
+  id: string;
+  title: string;
+  yearLabel: string;
+  coordinates: Coordinates;
+  isDashed: boolean;
+  /** Only exact-precision events drive per-building highlighting. */
+  isExactEvent: boolean;
+};
+
+/**
+ * An entry earns a marker only if its node has coordinates. Decision #14's
+ * off-map events are narrative steps: they appear in the list and the scroll, but
+ * there is nowhere on this map to point at, and inventing a pin would be a lie.
+ */
+function markerFactsFor(resolved: ResolvedEntry): MarkerFacts | null {
+  const coordinates = nodeCoordinates(resolved.node);
+  if (!coordinates) {
+    return null;
+  }
+
+  if (resolved.node.kind === 'event') {
+    const { event } = resolved.node;
+    return {
+      id: event.id,
+      title: event.title,
+      yearLabel: `${event.yearStart}`,
+      coordinates,
+      isDashed: event.locationPrecision !== 'exact',
+      isExactEvent: event.locationPrecision === 'exact',
+    };
+  }
+
+  const { place } = resolved.node;
+  return {
+    id: place.id,
+    title: place.title,
+    yearLabel: 'Today',
+    coordinates,
+    isDashed: false,
+    isExactEvent: false,
+  };
+}
 
 /**
  * Toggle only our own classes. MapLibre adds `maplibregl-marker` to the element it
@@ -88,23 +134,23 @@ type EventMarkersProps = {
  */
 function applyMarkerClasses(
   button: HTMLButtonElement,
-  event: StoryEvent,
-  state: ReturnType<typeof getEventMarkerState>,
+  facts: MarkerFacts,
+  active: boolean,
   selected: boolean,
 ): void {
   button.classList.add('story-marker');
-  button.classList.toggle('story-marker--active', state === 'active');
-  button.classList.toggle('story-marker--hidden', state !== 'active');
-  button.classList.toggle('story-marker--dashed', event.locationPrecision !== 'exact');
+  button.classList.toggle('story-marker--active', active);
+  button.classList.toggle('story-marker--hidden', !active);
+  button.classList.toggle('story-marker--dashed', facts.isDashed);
   button.classList.toggle('story-marker--selected', selected);
 }
 
 export default function EventMarkers({
   map,
-  events,
+  entries,
   timeFilter,
   selectedEventId,
-  onSelectEvent,
+  onSelectEntry,
   onReadMore,
 }: EventMarkersProps) {
   const markerRecordsRef = useRef(new globalThis.Map<string, MarkerRecord>());
@@ -117,20 +163,27 @@ export default function EventMarkers({
   const buildingIdByEventRef = useRef(new globalThis.Map<string, FeatureId>());
   // The set of building ids currently carrying highlight feature-state, so a
   // building can be un-highlighted the instant its event leaves the visible
-  // window instead of staying lit from a stale era selection.
+  // window instead of staying lit from a stale chapter selection.
   const highlightedIdsRef = useRef(new Set<FeatureId>());
 
   useEffect(() => {
     const records = markerRecordsRef.current;
+    const wanted = new Set<string>();
 
-    for (const event of events) {
-      if (records.has(event.id)) {
+    for (const resolved of entries) {
+      const facts = markerFactsFor(resolved);
+      if (!facts) {
+        continue;
+      }
+      wanted.add(facts.id);
+
+      if (records.has(facts.id)) {
         continue;
       }
 
       const button = document.createElement('button');
       button.type = 'button';
-      button.setAttribute('aria-label', `${event.title}, ${event.yearStart}`);
+      button.setAttribute('aria-label', `${facts.title}, ${facts.yearLabel}`);
 
       const tooltip = document.createElement('span');
       tooltip.className = 'story-marker-tooltip';
@@ -138,11 +191,11 @@ export default function EventMarkers({
 
       const tooltipTitle = document.createElement('span');
       tooltipTitle.className = 'story-marker-tooltip__title';
-      tooltipTitle.textContent = event.title;
+      tooltipTitle.textContent = facts.title;
 
       const tooltipYear = document.createElement('span');
       tooltipYear.className = 'story-marker-tooltip__year';
-      tooltipYear.textContent = `${event.yearStart}`;
+      tooltipYear.textContent = facts.yearLabel;
 
       tooltip.append(tooltipTitle, tooltipYear);
       button.append(tooltip);
@@ -160,15 +213,15 @@ export default function EventMarkers({
         element: button,
         anchor: 'bottom',
       })
-        .setLngLat([event.coordinates.lng, event.coordinates.lat])
+        .setLngLat([facts.coordinates.lng, facts.coordinates.lat])
         .setPopup(popup)
         .addTo(map);
 
       button.addEventListener('click', () => {
-        onSelectEvent(event);
+        onSelectEntry(resolved);
       });
 
-      records.set(event.id, {
+      records.set(facts.id, {
         marker,
         popup,
         popupRoot,
@@ -176,6 +229,19 @@ export default function EventMarkers({
         tooltipTitle,
         tooltipYear,
       });
+    }
+
+    // Switching storyline swaps the entry set wholesale, so markers for nodes that
+    // are not in the new storyline have to go rather than linger as orphans.
+    for (const [id, record] of records) {
+      if (wanted.has(id)) {
+        continue;
+      }
+      record.popup.remove();
+      record.marker.remove();
+      const { popupRoot } = record;
+      setTimeout(() => popupRoot.unmount(), 0);
+      records.delete(id);
     }
 
     return () => {
@@ -191,25 +257,29 @@ export default function EventMarkers({
       }
       markerRecordsRef.current.clear();
     };
-  }, [events, map, onSelectEvent]);
+  }, [entries, map, onSelectEntry]);
 
   useEffect(() => {
-    for (const event of events) {
-      const record = markerRecordsRef.current.get(event.id);
+    for (const resolved of entries) {
+      const facts = markerFactsFor(resolved);
+      if (!facts) {
+        continue;
+      }
+
+      const record = markerRecordsRef.current.get(facts.id);
       if (!record) {
         continue;
       }
 
-      const state = getEventMarkerState(event, timeFilter);
-      const active = state === 'active';
+      const active = getEntryMarkerState(resolved, timeFilter) === 'active';
 
-      applyMarkerClasses(record.button, event, state, selectedEventId === event.id);
+      applyMarkerClasses(record.button, facts, active, selectedEventId === facts.id);
 
       // MapLibre stamps its own generic aria-label onto a custom marker element,
       // so re-apply ours or every pin announces as "Map marker".
-      record.button.setAttribute('aria-label', `${event.title}, ${event.yearStart}`);
-      record.tooltipTitle.textContent = event.title;
-      record.tooltipYear.textContent = `${event.yearStart}`;
+      record.button.setAttribute('aria-label', `${facts.title}, ${facts.yearLabel}`);
+      record.tooltipTitle.textContent = facts.title;
+      record.tooltipYear.textContent = facts.yearLabel;
 
       // Belt and braces: `display` cannot be defeated by a CSS specificity clash the
       // way an opacity-only hide can, so an out-of-window pin is genuinely gone.
@@ -223,15 +293,15 @@ export default function EventMarkers({
       }
       record.popupRoot.render(
         <EventPopup
-          event={event}
-          onReadMore={(storyEvent) => {
-            onReadMore(storyEvent);
+          entry={resolved}
+          onReadMore={(target) => {
+            onReadMore(target);
             record.popup.remove();
           }}
         />,
       );
     }
-  }, [events, onReadMore, selectedEventId, timeFilter]);
+  }, [entries, onReadMore, selectedEventId, timeFilter]);
 
   useEffect(() => {
     const buildingIdByEvent = buildingIdByEventRef.current;
@@ -252,14 +322,15 @@ export default function EventMarkers({
       // once its patch of the map has actually loaded tiles, which is why this
       // also runs on every 'idle' — an event far from the initial camera
       // position resolves the moment a flight brings its tiles in.
-      for (const event of events) {
-        if (event.locationPrecision !== 'exact' || buildingIdByEvent.has(event.id)) {
+      for (const resolved of entries) {
+        const facts = markerFactsFor(resolved);
+        if (!facts?.isExactEvent || buildingIdByEvent.has(facts.id)) {
           continue;
         }
 
         let features: maplibregl.MapGeoJSONFeature[] = [];
         try {
-          const point = map.project([event.coordinates.lng, event.coordinates.lat]);
+          const point = map.project([facts.coordinates.lng, facts.coordinates.lat]);
           features = map.queryRenderedFeatures(point, { layers: ['building-extrusions'] });
         } catch {
           // Map not ready to be queried yet (e.g. style still loading); retry
@@ -280,28 +351,33 @@ export default function EventMarkers({
           const center = geometryCenter(feature.geometry);
           return (
             center !== null &&
-            approxMetersBetween(center, event.coordinates) <= MAX_BUILDING_MATCH_METERS
+            approxMetersBetween(center, facts.coordinates) <= MAX_BUILDING_MATCH_METERS
           );
         });
 
         if (plausible?.id !== undefined) {
-          buildingIdByEvent.set(event.id, plausible.id);
+          buildingIdByEvent.set(facts.id, plausible.id);
         }
       }
 
       const desired = new globalThis.Map<FeatureId, { isEventBuilding: boolean; isSelectedEventBuilding: boolean }>();
-      for (const event of events) {
-        const buildingId = buildingIdByEvent.get(event.id);
+      for (const resolved of entries) {
+        const facts = markerFactsFor(resolved);
+        if (!facts) {
+          continue;
+        }
+
+        const buildingId = buildingIdByEvent.get(facts.id);
         if (buildingId === undefined) {
           continue;
         }
 
-        if (getEventMarkerState(event, timeFilter) !== 'active') {
+        if (getEntryMarkerState(resolved, timeFilter) !== 'active') {
           continue;
         }
 
         const existing = desired.get(buildingId);
-        const isSelected = event.id === selectedEventId;
+        const isSelected = facts.id === selectedEventId;
         desired.set(buildingId, {
           isEventBuilding: true,
           isSelectedEventBuilding: (existing?.isSelectedEventBuilding ?? false) || isSelected,
@@ -327,7 +403,7 @@ export default function EventMarkers({
     return () => {
       map.off('idle', resolveAndApply);
     };
-  }, [events, map, selectedEventId, timeFilter]);
+  }, [entries, map, selectedEventId, timeFilter]);
 
   return null;
 }

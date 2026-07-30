@@ -7,31 +7,33 @@ import {
 } from 'react';
 import type { Map } from 'maplibre-gl';
 
-import type { Era, StoryEvent } from './data/schema';
+import { nodeCoordinates, type Chapter } from './data/schema';
 import EventMarkers from './components/EventMarkers';
 import EventPanel from './components/EventPanel';
 import IconRail from './components/IconRail';
 import ListFallback from './components/ListFallback';
 import MapCanvas from './components/MapCanvas';
-import { getEraZoneFeature } from './lib/eraZones';
+import { getChapterZoneFeature } from './lib/eraZones';
 import Splitter from './components/Splitter';
-import EraBands from './components/Timeline/EraBands';
+import ChapterBands from './components/Timeline/ChapterBands';
 import Scrubber from './components/Timeline/Scrubber';
 import WindowNote from './components/Timeline/WindowNote';
-import { flyToEra, flyToEvent } from './lib/camera';
+import { flyToChapter, flyToCoordinates } from './lib/camera';
 import { StaticJsonRepository } from './lib/repository';
 import { useMapHealth } from './lib/useMapHealth';
 import {
-  DEFAULT_RIGHT_COLUMN_SPLIT,
-  getCurrentEra,
-  getEventsByEra,
-  getTimelineEnd,
-  getVisibleEvents,
+  describeStorylineSpan,
+  getCurrentChapter,
+  getEntriesByChapter,
+  getStorylineYearRange,
+  getVisibleEntries,
   MAX_RIGHT_COLUMN_WIDTH_COLUMNS,
   MAX_RIGHT_COLUMN_WIDTH_STACKED,
   MIN_BOTTOM_REGION_HEIGHT,
   MIN_RIGHT_COLUMN_WIDTH,
+  resolveStorylineEntries,
   type PanelId,
+  type ResolvedEntry,
   describeTimeFilter,
   useAppStore,
 } from './store/useAppStore';
@@ -236,16 +238,19 @@ export default function App() {
 
   const {
     status,
-    eras,
+    storylines,
+    activeStorylineId,
     events,
+    visitablePlaces,
     errorMessage,
     navigation,
     timeFilter,
     panelEventId,
     layout,
     loadContent,
+    setActiveStoryline,
     setYearFromScrubber,
-    selectEraFilter,
+    selectChapterFilter,
     clearTimeFilter,
     openPanel,
     closePanel,
@@ -278,14 +283,53 @@ export default function App() {
     panelVisibility.eventList &&
     panelVisibility.description;
 
-  const timelineEnd = getTimelineEnd(events, new Date().getFullYear());
-  const currentEra = getCurrentEra(eras, navigation.year);
-  const visibleEvents = getVisibleEvents(events, timeFilter);
-  const windowNote = describeTimeFilter(timeFilter, eras);
-  const activeEraZone = timeFilter.kind === 'era' ? getEraZoneFeature(timeFilter.eraId) : null;
-  const eventGroups = getEventsByEra(eras, visibleEvents);
-  const panelEvent = events.find((event) => event.id === panelEventId) ?? null;
-  const panelEra = panelEvent ? eras.find((era) => era.id === panelEvent.eraId) ?? null : null;
+  const activeStoryline =
+    storylines.find((storyline) => storyline.id === activeStorylineId) ?? null;
+
+  // Memoised because EventMarkers keys its create-and-destroy effect on this
+  // array's identity: a fresh array every render would tear down and rebuild every
+  // marker on every keystroke of the scrubber.
+  const resolvedEntries = useMemo(
+    () =>
+      activeStoryline
+        ? resolveStorylineEntries(activeStoryline, events, visitablePlaces)
+        : [],
+    [activeStoryline, events, visitablePlaces],
+  );
+
+  const visibleEntries = useMemo(
+    () => getVisibleEntries(resolvedEntries, timeFilter),
+    [resolvedEntries, timeFilter],
+  );
+
+  const chapters = activeStoryline?.chapters ?? [];
+  const yearRange = activeStoryline
+    ? getStorylineYearRange(activeStoryline, resolvedEntries, new Date().getFullYear())
+    : { minYear: 870, maxYear: new Date().getFullYear() };
+  const currentChapter = getCurrentChapter(chapters, navigation.year);
+  const activeChapterZone =
+    timeFilter.kind === 'chapter'
+      ? getChapterZoneFeature(activeStorylineId, timeFilter.chapterId)
+      : null;
+  const windowNote = describeTimeFilter(
+    timeFilter,
+    activeStoryline,
+    activeChapterZone !== null,
+  );
+  const entryGroups = activeStoryline
+    ? getEntriesByChapter(activeStoryline, visibleEntries)
+    : [];
+
+  // The panel reads the *entry*, not the event: the framing note is what differs
+  // between storylines, and it lives on the entry.
+  const panelEntry =
+    resolvedEntries.find((resolved) => {
+      const { node } = resolved;
+      return (node.kind === 'event' ? node.event.id : node.place.id) === panelEventId;
+    }) ?? null;
+  const panelChapter = panelEntry
+    ? chapters.find((chapter) => chapter.id === panelEntry.entry.chapterId) ?? null
+    : null;
 
   const bottomRegionHeight = showBottomRegion
     ? getClampedBottomRegionHeight(
@@ -331,28 +375,30 @@ export default function App() {
     // Tier-0 has no post-flight side effect yet; later playback and tour flows consume accepted completions.
   }, []);
 
-  const focusEventOnMap = useCallback(
-    (event: StoryEvent) => {
-      if (!map) {
+  const focusEntryOnMap = useCallback(
+    (resolved: ResolvedEntry) => {
+      const coordinates = nodeCoordinates(resolved.node);
+      // An off-map entry holds the camera where it is, by design (Decision #14).
+      if (!map || !coordinates) {
         return;
       }
 
       const token = issueFlightToken();
-      flyToEvent(map, event, token, completeFlight);
+      flyToCoordinates(map, coordinates, token, completeFlight);
     },
     [completeFlight, issueFlightToken, map],
   );
 
-  const focusEraOnMap = useCallback(
-    (era: Era) => {
+  const focusChapterOnMap = useCallback(
+    (chapter: Chapter) => {
       if (!map) {
         return;
       }
 
       const token = issueFlightToken();
-      flyToEra(map, era, events, token, completeFlight);
+      flyToChapter(map, chapter, resolvedEntries, token, completeFlight);
     },
-    [completeFlight, events, issueFlightToken, map],
+    [completeFlight, issueFlightToken, map, resolvedEntries],
   );
 
   const handleYearChange = useCallback(
@@ -366,28 +412,28 @@ export default function App() {
     clearTimeFilter();
   }, [clearTimeFilter]);
 
-  const handleEraSelect = useCallback(
-    (era: Era) => {
-      selectEraFilter(era);
-      focusEraOnMap(era);
+  const handleChapterSelect = useCallback(
+    (chapter: Chapter) => {
+      selectChapterFilter(chapter);
+      focusChapterOnMap(chapter);
     },
-    [focusEraOnMap, selectEraFilter],
+    [focusChapterOnMap, selectChapterFilter],
   );
 
-  const handleSelectEvent = useCallback(
-    (event: StoryEvent) => {
-      openPanel(event.id);
-      focusEventOnMap(event);
+  const handleOpenEntry = useCallback(
+    (resolved: ResolvedEntry) => {
+      const { node } = resolved;
+      openPanel(node.kind === 'event' ? node.event.id : node.place.id);
+      focusEntryOnMap(resolved);
     },
-    [focusEventOnMap, openPanel],
+    [focusEntryOnMap, openPanel],
   );
 
-  const handleOpenPanel = useCallback(
-    (event: StoryEvent) => {
-      openPanel(event.id);
-      focusEventOnMap(event);
+  const handleStorylineSelect = useCallback(
+    (storylineId: string) => {
+      setActiveStoryline(storylineId);
     },
-    [focusEventOnMap, openPanel],
+    [setActiveStoryline],
   );
 
   const handleRetryMap = useCallback(() => {
@@ -608,13 +654,53 @@ export default function App() {
               City-Storyline
             </p>
             <h1 className="font-display text-2xl leading-tight text-slate-950 md:text-[1.75rem]">
-              Prague history mapped in time and place.
+              {activeStoryline ? activeStoryline.title : 'No storyline loaded'}
             </h1>
           </div>
           <p className="text-sm text-slate-600">
-            Twenty-three events across eight chapters, 880 to 2002.
+            {activeStoryline
+              ? `${resolvedEntries.length} entries across ${chapters.length} chapters, ${describeStorylineSpan(activeStoryline)}.`
+              : ''}
           </p>
         </header>
+
+        {/*
+          Phase 1 stand-in for the front door. The card rail, hover-to-fly and
+          locality filter are Phase 3; this exists only so the same node can be
+          read from two storylines, which is what Phase 1 has to prove.
+        */}
+        <div className="flex shrink-0 flex-wrap items-center gap-2 rounded-[1.5rem] border border-white/60 bg-[#f8f5ef]/80 px-4 py-2.5 shadow-panel backdrop-blur">
+          <p className="mr-1 text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-500">
+            Storyline
+          </p>
+          {storylines.map((storyline) => {
+            const active = storyline.id === activeStorylineId;
+            return (
+              <button
+                key={storyline.id}
+                type="button"
+                onClick={() => handleStorylineSelect(storyline.id)}
+                aria-pressed={active}
+                className={[
+                  'flex items-baseline gap-2 rounded-full border px-3 py-1 text-sm transition',
+                  active
+                    ? 'border-slate-900 bg-slate-900 text-[#f8f5ef]'
+                    : 'border-slate-200 bg-white/80 text-slate-800 hover:border-slate-400 hover:bg-white',
+                ].join(' ')}
+              >
+                <span className="font-semibold">{storyline.title}</span>
+                <span
+                  className={[
+                    'text-[10px] font-semibold uppercase tracking-[0.16em]',
+                    active ? 'text-[#f8f5ef]/70' : 'text-slate-500',
+                  ].join(' ')}
+                >
+                  {storyline.type}
+                </span>
+              </button>
+            );
+          })}
+        </div>
 
         {bannerMessage ? (
           <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 rounded-[1.5rem] border border-amber-300/80 bg-amber-50 px-4 py-2.5 text-sm text-amber-950 shadow-sm">
@@ -648,16 +734,16 @@ export default function App() {
                       key={mapRetryKey}
                       onMapReady={setMap}
                       onMapUnavailable={reportUnsupported}
-                      activeEraZone={activeEraZone}
+                      activeChapterZone={activeChapterZone}
                     />
                     {map ? (
                       <EventMarkers
                         map={map}
-                        events={events}
+                        entries={resolvedEntries}
                         timeFilter={timeFilter}
                         selectedEventId={navigation.selectedEventId}
-                        onSelectEvent={handleSelectEvent}
-                        onReadMore={handleOpenPanel}
+                        onSelectEntry={handleOpenEntry}
+                        onReadMore={handleOpenEntry}
                       />
                     ) : null}
                   </div>
@@ -688,10 +774,11 @@ export default function App() {
                               className="min-h-0 shrink-0"
                             >
                               <ListFallback
-                                groups={eventGroups}
-                                currentEraId={currentEra?.id ?? null}
+                                storylineTitle={activeStoryline?.title ?? ''}
+                                groups={entryGroups}
+                                currentChapterId={currentChapter?.id ?? null}
                                 selectedEventId={navigation.selectedEventId}
-                                onOpenPanel={handleOpenPanel}
+                                onOpenEntry={handleOpenEntry}
                               />
                             </div>
                             <Splitter
@@ -705,8 +792,9 @@ export default function App() {
                               className="min-h-0 shrink-0"
                             >
                               <EventPanel
-                                event={panelEvent}
-                                era={panelEra}
+                                entry={panelEntry}
+                                chapter={panelChapter}
+                                storylineTitle={activeStoryline?.title ?? ''}
                                 onClose={closePanel}
                               />
                             </div>
@@ -718,10 +806,11 @@ export default function App() {
                               className="min-h-0 min-w-0 shrink-0"
                             >
                               <ListFallback
-                                groups={eventGroups}
-                                currentEraId={currentEra?.id ?? null}
+                                storylineTitle={activeStoryline?.title ?? ''}
+                                groups={entryGroups}
+                                currentChapterId={currentChapter?.id ?? null}
                                 selectedEventId={navigation.selectedEventId}
-                                onOpenPanel={handleOpenPanel}
+                                onOpenEntry={handleOpenEntry}
                               />
                             </div>
                             <Splitter
@@ -735,8 +824,9 @@ export default function App() {
                               className="min-h-0 min-w-0 shrink-0"
                             >
                               <EventPanel
-                                event={panelEvent}
-                                era={panelEra}
+                                entry={panelEntry}
+                                chapter={panelChapter}
+                                storylineTitle={activeStoryline?.title ?? ''}
                                 onClose={closePanel}
                               />
                             </div>
@@ -744,17 +834,19 @@ export default function App() {
                         ) : panelVisibility.eventList ? (
                           <div className="min-h-0 flex-1">
                             <ListFallback
-                              groups={eventGroups}
-                              currentEraId={currentEra?.id ?? null}
+                              storylineTitle={activeStoryline?.title ?? ''}
+                              groups={entryGroups}
+                              currentChapterId={currentChapter?.id ?? null}
                               selectedEventId={navigation.selectedEventId}
-                              onOpenPanel={handleOpenPanel}
+                              onOpenEntry={handleOpenEntry}
                             />
                           </div>
                         ) : panelVisibility.description ? (
                           <div className="min-h-0 flex-1">
                             <EventPanel
-                              event={panelEvent}
-                              era={panelEra}
+                              entry={panelEntry}
+                              chapter={panelChapter}
+                              storylineTitle={activeStoryline?.title ?? ''}
                               onClose={closePanel}
                             />
                           </div>
@@ -767,17 +859,19 @@ export default function App() {
                 <div className="flex min-h-0 flex-1 flex-col gap-3">
                   <div className="min-h-0 flex-1">
                     <ListFallback
-                      groups={eventGroups}
-                      currentEraId={currentEra?.id ?? null}
+                      storylineTitle={activeStoryline?.title ?? ''}
+                      groups={entryGroups}
+                      currentChapterId={currentChapter?.id ?? null}
                       selectedEventId={navigation.selectedEventId}
-                      onOpenPanel={handleOpenPanel}
+                      onOpenEntry={handleOpenEntry}
                     />
                   </div>
                   {showStackedDescription ? (
                     <div className="min-h-[12rem] shrink-0">
                       <EventPanel
-                        event={panelEvent}
-                        era={panelEra}
+                        entry={panelEntry}
+                        chapter={panelChapter}
+                        storylineTitle={activeStoryline?.title ?? ''}
                         onClose={closePanel}
                       />
                     </div>
@@ -809,22 +903,25 @@ export default function App() {
                         <WindowNote
                           title={windowNote.title}
                           blurb={windowNote.blurb}
-                          visibleCount={visibleEvents.length}
-                          totalCount={events.length}
+                          visibleCount={visibleEntries.length}
+                          totalCount={resolvedEntries.length}
                         />
                         <Scrubber
-                          minYear={eras[0]?.yearStart ?? 870}
-                          maxYear={timelineEnd}
+                          minYear={yearRange.minYear}
+                          maxYear={yearRange.maxYear}
                           year={navigation.year}
                           onYearChange={handleYearChange}
                         />
                       </div>
                     ) : null}
                     {panelVisibility.chapters ? (
-                      <EraBands
-                        eras={eras}
+                      <ChapterBands
+                        chapters={chapters}
+                        spanLabel={
+                          activeStoryline ? describeStorylineSpan(activeStoryline) : ''
+                        }
                         timeFilter={timeFilter}
-                        onSelectEra={handleEraSelect}
+                        onSelectChapter={handleChapterSelect}
                         onSelectAll={handleSelectAll}
                       />
                     ) : null}

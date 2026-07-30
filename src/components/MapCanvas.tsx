@@ -17,13 +17,13 @@ import {
 type MapCanvasProps = {
   onMapReady: (map: Map | null) => void;
   onMapUnavailable: () => void;
-  activeEraZone: EraZoneFeature | null;
+  activeChapterZone: EraZoneFeature | null;
 };
 
 export default function MapCanvas({
   onMapReady,
   onMapUnavailable,
-  activeEraZone,
+  activeChapterZone,
 }: MapCanvasProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<Map | null>(null);
@@ -167,7 +167,7 @@ export default function MapCanvas({
 
       source.setData({
         type: 'FeatureCollection',
-        features: activeEraZone ? [activeEraZone] : [],
+        features: activeChapterZone ? [activeChapterZone] : [],
       });
     };
 
@@ -186,7 +186,7 @@ export default function MapCanvas({
         map.off('load', applyZoneData);
       };
     }
-  }, [activeEraZone]);
+  }, [activeChapterZone]);
 
   return (
     <div className="relative h-full overflow-hidden rounded-[2rem] border border-white/60 shadow-panel">

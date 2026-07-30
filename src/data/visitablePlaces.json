@@ -1,0 +1,102 @@
+[
+  {
+    "id": "place-charles-iv-tomb",
+    "title": "His tomb in the royal crypt",
+    "locationName": "St Vitus Cathedral, royal crypt",
+    "coordinates": {
+      "lng": 14.40052,
+      "lat": 50.09034
+    },
+    "relatedEventIds": [
+      "charles-iv-dies"
+    ],
+    "wikipediaUrl": "https://en.wikipedia.org/wiki/St._Vitus_Cathedral",
+    "summary": "",
+    "body": [],
+    "images": []
+  },
+  {
+    "id": "place-st-wenceslas-crown",
+    "title": "The St Wenceslas Crown",
+    "locationName": "St Vitus Cathedral, Crown Chamber",
+    "coordinates": {
+      "lng": 14.40052,
+      "lat": 50.09034
+    },
+    "relatedEventIds": [
+      "charles-iv-crowned-king-of-bohemia"
+    ],
+    "wikipediaUrl": "https://en.wikipedia.org/wiki/Crown_of_Saint_Wenceslas",
+    "locationNote": "You cannot normally see the original. It is held in a chamber off the St Wenceslas Chapel behind seven locks whose keys are distributed among seven office-holders, and it is brought out roughly once every five years. What visitors see is a replica. Say so plainly — this is the one entry in the collection that could send someone to look at something that is not there.",
+    "summary": "",
+    "body": [],
+    "images": []
+  },
+  {
+    "id": "place-triforium-bust",
+    "title": "His portrait bust in the triforium",
+    "locationName": "St Vitus Cathedral, triforium",
+    "coordinates": {
+      "lng": 14.40052,
+      "lat": 50.09034
+    },
+    "relatedEventIds": [
+      "st-vitus-cathedral-begun"
+    ],
+    "wikipediaUrl": "https://en.wikipedia.org/wiki/St._Vitus_Cathedral",
+    "locationNote": "The article confirms the triforium busts depict the royal family, saints, Prague bishops and the two master builders including Parler himself, but does not single out a bust of Charles IV. His is well known; confirm it against a better source before naming it.",
+    "summary": "",
+    "body": [],
+    "images": []
+  },
+  {
+    "id": "place-chapel-of-the-holy-cross",
+    "title": "The Chapel of the Holy Cross",
+    "locationName": "Karlstejn Castle, Great Tower",
+    "coordinates": {
+      "lng": 14.1881,
+      "lat": 49.9394
+    },
+    "relatedEventIds": [
+      "karlstejn-castle-founded"
+    ],
+    "wikipediaUrl": "https://en.wikipedia.org/wiki/Karl%C5%A1tejn_Castle",
+    "summary": "",
+    "body": [],
+    "images": []
+  },
+  {
+    "id": "place-theodoric-panels",
+    "title": "Master Theodoric's panel paintings",
+    "locationName": "Karlstejn Castle and the National Gallery Prague",
+    "coordinates": {
+      "lng": 14.18806,
+      "lat": 49.93944
+    },
+    "relatedEventIds": [
+      "karlstejn-castle-founded"
+    ],
+    "wikipediaUrl": "https://en.wikipedia.org/wiki/Master_Theodoric",
+    "locationNote": "129 panels survive of an original 130, in four rows in the Chapel of the Holy Cross. Several are now in the National Gallery Prague rather than at the castle — among them St Luke, St Matthew, St Catherine of Alexandria and St Charlemagne, painted c. 1359-1365. Theodoric was Charles's court painter and is the best-documented Gothic painter in Bohemia.",
+    "summary": "",
+    "body": [],
+    "images": []
+  },
+  {
+    "id": "place-carolinum",
+    "title": "The Carolinum",
+    "locationName": "Karolinum, Old Town",
+    "coordinates": {
+      "lng": 14.4233861,
+      "lat": 50.0863583
+    },
+    "relatedEventIds": [
+      "charles-university-founded"
+    ],
+    "wikipediaUrl": "https://en.wikipedia.org/wiki/Karolinum",
+    "locationNote": "Do not imply the building dates from the 1348 foundation. Charles donated the property in 1366, and the university did not get proper facilities here until the early 1380s under Wenceslas IV. It is the seat of Charles University today.",
+    "summary": "",
+    "body": [],
+    "images": []
+  }
+]

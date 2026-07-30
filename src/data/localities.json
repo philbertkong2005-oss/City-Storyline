@@ -1,0 +1,71 @@
+[
+  {
+    "id": "prague",
+    "name": "Prague",
+    "bounds": [
+      [
+        14.22,
+        49.94
+      ],
+      [
+        14.71,
+        50.18
+      ]
+    ],
+    "defaultView": {
+      "center": [
+        14.4205,
+        50.088
+      ],
+      "zoom": 14.5,
+      "pitch": 55,
+      "bearing": -20
+    }
+  },
+  {
+    "id": "karlstejn",
+    "name": "Karlstejn",
+    "bounds": [
+      [
+        14.16,
+        49.925
+      ],
+      [
+        14.215,
+        49.952
+      ]
+    ],
+    "defaultView": {
+      "center": [
+        14.18806,
+        49.93944
+      ],
+      "zoom": 15.6,
+      "pitch": 55,
+      "bearing": -20
+    }
+  },
+  {
+    "id": "karlovy-vary",
+    "name": "Karlovy Vary",
+    "bounds": [
+      [
+        12.83,
+        50.2
+      ],
+      [
+        12.93,
+        50.26
+      ]
+    ],
+    "defaultView": {
+      "center": [
+        12.8725,
+        50.23056
+      ],
+      "zoom": 14.6,
+      "pitch": 55,
+      "bearing": -20
+    }
+  }
+]

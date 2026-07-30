@@ -1,29 +1,34 @@
-import erasJson from '../data/eras.json';
 import eventsJson from '../data/events.json';
-import toursJson from '../data/tours.json';
+import localitiesJson from '../data/localities.json';
+import storylinesJson from '../data/storylines.json';
+import visitablePlacesJson from '../data/visitablePlaces.json';
 import {
-  erasSchema,
+  localitiesSchema,
   storyEventsSchema,
-  toursSchema,
-  type Era,
+  storylinesSchema,
+  visitablePlacesSchema,
+  type Locality,
   type StoryEvent,
-  type Tour,
+  type Storyline,
+  type VisitablePlace,
 } from '../data/schema';
 
-const eras = erasSchema.parse(erasJson);
 const events = storyEventsSchema.parse(eventsJson);
-const tours = toursSchema.parse(toursJson);
+const visitablePlaces = visitablePlacesSchema.parse(visitablePlacesJson);
+const storylines = storylinesSchema.parse(storylinesJson);
+const localities = localitiesSchema.parse(localitiesJson);
 
 export interface ContentRepository {
-  getEras(): Promise<Era[]>;
+  getStorylines(): Promise<Storyline[]>;
   getEvents(): Promise<StoryEvent[]>;
   getEvent(eventId: string): Promise<StoryEvent | null>;
-  getTours(): Promise<Tour[]>;
+  getVisitablePlaces(): Promise<VisitablePlace[]>;
+  getLocalities(): Promise<Locality[]>;
 }
 
 export class StaticJsonRepository implements ContentRepository {
-  async getEras(): Promise<Era[]> {
-    return structuredClone(eras);
+  async getStorylines(): Promise<Storyline[]> {
+    return structuredClone(storylines);
   }
 
   async getEvents(): Promise<StoryEvent[]> {
@@ -35,7 +40,11 @@ export class StaticJsonRepository implements ContentRepository {
     return structuredClone(event);
   }
 
-  async getTours(): Promise<Tour[]> {
-    return structuredClone(tours);
+  async getVisitablePlaces(): Promise<VisitablePlace[]> {
+    return structuredClone(visitablePlaces);
+  }
+
+  async getLocalities(): Promise<Locality[]> {
+    return structuredClone(localities);
   }
 }

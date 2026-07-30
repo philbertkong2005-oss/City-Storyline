@@ -1,6 +1,7 @@
 import type { LngLatBoundsLike, Map } from 'maplibre-gl';
 
-import type { Era, StoryEvent } from '../data/schema';
+import { nodeCoordinates, type Chapter, type Coordinates } from '../data/schema';
+import type { ResolvedEntry } from '../store/useAppStore';
 
 const DEFAULT_BEARING = -20;
 const DEFAULT_PITCH = 55;
@@ -23,15 +24,15 @@ function attachMoveEnd(
   map.on('moveend', handleMoveEnd);
 }
 
-export function flyToEvent(
+export function flyToCoordinates(
   map: Map,
-  event: StoryEvent,
+  coordinates: Coordinates,
   token: number,
   onComplete?: (token: number) => void,
 ): void {
   attachMoveEnd(map, token, onComplete);
   map.flyTo({
-    center: [event.coordinates.lng, event.coordinates.lat],
+    center: [coordinates.lng, coordinates.lat],
     zoom: DEFAULT_EVENT_ZOOM,
     pitch: DEFAULT_PITCH,
     bearing: DEFAULT_BEARING,
@@ -40,19 +41,32 @@ export function flyToEvent(
   });
 }
 
-export function flyToEra(
+/**
+ * Frames a chapter's entries. Entries with no coordinates are skipped rather than
+ * defaulted to some fallback point: Decision #14's off-map events are narrative
+ * steps, and the camera holding position is the specified behaviour. A chapter
+ * made up entirely of off-map entries therefore moves the camera not at all.
+ */
+export function flyToChapter(
   map: Map,
-  era: Era,
-  events: StoryEvent[],
+  chapter: Chapter,
+  entries: ResolvedEntry[],
   token: number,
   onComplete?: (token: number) => void,
 ): void {
-  const eraEvents = events.filter((event) => event.eraId === era.id);
+  const located = entries
+    .filter((resolved) => resolved.entry.chapterId === chapter.id)
+    .map((resolved) => nodeCoordinates(resolved.node))
+    .filter((coordinates): coordinates is Coordinates => coordinates !== undefined);
 
-  if (eraEvents.length <= 1) {
-    const singleEvent = eraEvents[0];
-    if (singleEvent) {
-      flyToEvent(map, singleEvent, token, onComplete);
+  if (located.length === 0) {
+    return;
+  }
+
+  if (located.length === 1) {
+    const [only] = located;
+    if (only) {
+      flyToCoordinates(map, only, token, onComplete);
     }
     return;
   }
@@ -62,11 +76,11 @@ export function flyToEra(
   let minLat = Number.POSITIVE_INFINITY;
   let maxLat = Number.NEGATIVE_INFINITY;
 
-  for (const event of eraEvents) {
-    minLng = Math.min(minLng, event.coordinates.lng);
-    maxLng = Math.max(maxLng, event.coordinates.lng);
-    minLat = Math.min(minLat, event.coordinates.lat);
-    maxLat = Math.max(maxLat, event.coordinates.lat);
+  for (const coordinates of located) {
+    minLng = Math.min(minLng, coordinates.lng);
+    maxLng = Math.max(maxLng, coordinates.lng);
+    minLat = Math.min(minLat, coordinates.lat);
+    maxLat = Math.max(maxLat, coordinates.lat);
   }
 
   const bounds: LngLatBoundsLike = [

@@ -22,10 +22,26 @@ type EraZoneRecord = {
 
 const ERA_ZONES = eraZonesJson as EraZoneRecord[];
 
+/**
+ * These zones sketch the growth of one city, so they belong to the Prague
+ * storyline and to nothing else. Gating on the storyline id rather than relying
+ * on chapter ids not colliding: Prague's chapters are Tier-0's eras and keep
+ * their ids, but a future storyline is free to name a chapter "charles" without
+ * inheriting Prague's 14th-century footprint.
+ */
+export const ZONED_STORYLINE_ID = 'prague';
+
 export type EraZoneFeature = GeoJSON.Feature<GeoJSON.Polygon | GeoJSON.MultiPolygon, { eraId: string; color: string }>;
 
-export function getEraZoneFeature(eraId: string): EraZoneFeature | null {
-  const record = ERA_ZONES.find((zone) => zone.eraId === eraId);
+export function getChapterZoneFeature(
+  storylineId: string | null,
+  chapterId: string,
+): EraZoneFeature | null {
+  if (storylineId !== ZONED_STORYLINE_ID) {
+    return null;
+  }
+
+  const record = ERA_ZONES.find((zone) => zone.eraId === chapterId);
   if (!record) {
     return null;
   }
