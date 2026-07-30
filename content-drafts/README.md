@@ -29,16 +29,54 @@ events reused, 6 visitable places, 2 new localities, 6 chapters.
 With these in place the derived genre for this storyline comes out as **architecture · politics ·
 religion** (top 3 by event count), which is a fairer description of him than any single label.
 
-### Verify before it goes near the validator
+### Verification pass — done 2026-07-29
 
-- **Coordinates for the new locations are estimates.** Karlštejn, Karlovy Vary, Emmaus and the Petřín
-  wall need checking against OSM, as PLAN.md required for the original 23. The reused Prague Castle,
-  St Vitus and Karolinum coordinates are copied exactly from `events.json` so the same building
-  highlights correctly.
-- **Every `wikipediaUrl` needs confirming.** The validator enforces HTTPS plus a host allowlist but
-  cannot tell you an article title is wrong.
-- **Locality `bounds` are rough boxes**, sized to make the soft-boundary filter behave sensibly rather
-  than to trace an administrative border.
+All 13 `wikipediaUrl` values were fetched and resolve. Coordinates were checked against the
+coordinates each article publishes. Corrections already applied to the JSON:
+
+| Record | Was | Now | Off by |
+|---|---|---|---|
+| `karlovy-vary-chartered` | 12.883, 50.2231 | 12.8725, 50.23056 | ~1.3 km |
+| `emmaus-monastery-founded` | 14.4172, 50.0745 | 14.4175, 50.07222 | ~250 m |
+| `hunger-wall-built` | 14.395, 50.0805 | 14.395, 50.083 | ~280 m |
+| `karlstejn-castle-founded` | 14.1881, 49.9394 | 14.18806, 49.93944 | ~5 m |
+
+The Emmaus fix mattered most: at `exact` precision the coordinate drives per-building highlighting, so
+250 m would have coloured the wrong building.
+
+Dates confirmed and written into `locationNote`: born 14 May 1316 · seven years at the French court ·
+archbishopric 30 April 1344 · Crécy 26 August 1346, Charles wounded and fighting on the French side ·
+crowned King of Bohemia 2 September 1347, with a crown made in 1346 · Karlštejn 1348 · emperor
+5 April 1355, crowned by a cardinal · Golden Bull at Nuremberg 10 January and Metz 25 December 1356 ·
+Hunger Wall 1360–1362 · Karlovy Vary privileges 14 August 1370, settlement c. 1349 · died
+29 November 1378, buried at St Vitus.
+
+**Two claims failed verification and are flagged in the JSON, not silently kept:**
+
+1. **`charles-iv-returns-to-bohemia` cited an article that does not support it.** The Prague Castle
+   article says only that the royal palace was rebuilt in Gothic style under Charles IV — nothing about
+   the castle being ruined in 1333. That detail comes from the *Vita Caroli*, which has **no standalone
+   English Wikipedia article**. The URL now points to the Charles IV article, which at least confirms
+   the autobiography exists; cite the *Vita Caroli* directly in the prose.
+   **Do not link `Vita Karoli Magni`** — that is Einhard's life of Charlemagne, a different work by
+   five centuries.
+2. **`place-st-wenceslas-crown` would have sent visitors to see something they cannot see.** The
+   original is behind seven locks, keys split among seven office-holders, and is displayed roughly once
+   every five years. Visitors see a replica. The entry now says so.
+
+**Still unconfirmed, flagged in `locationNote` rather than dropped:** the Slavonic-rite licence at
+Emmaus (the English article mentions only that students of Cyril and Methodius studied there; the Czech
+name *Na Slovanech* supports it); a triforium bust specifically of Charles IV (the article confirms
+busts of the royal family, bishops and the master builders, without naming his); and the multi-day
+funeral in 1378.
+
+**One deliberate non-change:** St Vitus is at 14.40052, 50.09034 in `events.json`, while Wikipedia
+gives 14.40056, 50.09083 — about 55 m apart. The Tier-0 value was verified against the building
+footprint in OSM, which is what per-building highlighting needs. Wikipedia's is a rough centroid.
+Keep the existing value.
+
+**Locality `bounds` remain rough boxes**, sized so the soft-boundary filter behaves sensibly rather
+than to trace an administrative border. Both `defaultView` centres now match the verified coordinates.
 
 ### Suggested entry notes for the four reused events
 
