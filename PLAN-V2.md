@@ -178,6 +178,26 @@ this is the single most likely place this ladder is wrong.
 13. **`maxBounds` is removed.** It is the same Prague-shaped assumption as the validator's bounding
     box, expressed in the camera instead of the data. Per-locality bounds replace it.
 
+Decisions 14–16 were not visible while designing; they surfaced only when the first storyline's
+content was actually drafted against the schema. See [content-drafts/README.md](content-drafts/README.md).
+
+14. **`coordinates` becomes optional.** An event without coordinates is a narrative step in the scroll
+    with no marker; the text carries it and the camera holds position. Four of Charles IV's events —
+    the French court, Crécy, the Rome coronation, the Golden Bull — have no Czech coordinate, and
+    without this the arc loses his childhood, his battles and his imperial crown. Rejected
+    alternatives: dropping them (the storyline stops being a biography), and including foreign
+    coordinates now (contradicts the V1 Czech-lands scope and forces a European base map). When the
+    European chapters arrive in V5 these events *gain* coordinates rather than being newly written.
+
+15. **`category` gains `life`.** Birth and death fit none of the existing seven values. This is not
+    cosmetic: genre labels are derived from categories (Decision #8), so filing a birth under
+    `politics` would silently skew a person storyline's derived genre. The category enum is the one
+    place where a lazy content choice has a visible downstream effect.
+
+16. **Chapters carry `kind: 'period' | 'present'`.** The closing "where to see him today" chapter has
+    no year range, so the contiguity assertion inherited from PLAN.md Decision #2 applies only to
+    `period` chapters.
+
 ## Front door — specified
 
 - Title, search bar, filter button, and an auto-scrolling row of storyline cards over a live,
@@ -200,6 +220,40 @@ this is the single most likely place this ladder is wrong.
 - **On phone (V2):** swipe a card deck to preview, tap to enter — swipe replaces hover, tap stays tap.
 - **Reduced motion:** no auto-scroll, `jumpTo` instead of `flyTo`, no slide transition. Designed in,
   not bolted on.
+
+## Demo scope — what to build first
+
+A test site that proves the model and the interactions. **Prose is out of scope**: every `body` in
+[content-drafts/](content-drafts/) is empty, so the demo demonstrates mechanics with the existing
+`summary` lines standing in. That is the point — the model is the risk, not the writing.
+
+Built on a branch. The deploy workflow only fires on `main`, so the live Tier-0 site is untouched
+until the demo is judged good enough to merge.
+
+**Phase 1 — the model, proven with deliberately plain UI** (4–6 evenings)
+
+Schema, store, validator, and the migration. Prove it with a chapter list and a panel, no front door
+and no scroll choreography. Exit criterion: **Charles Bridge reads correctly in both the Prague
+storyline and the Charles IV storyline, with different framing above identical prose, from one
+record.** If that does not feel right, nothing built on top of it will.
+
+**Phase 2 — geography** (2–3 evenings)
+Localities, `maxBounds` removed, flat base map, Prague → Karlštejn travel. Exit criterion: the camera
+crosses 30km between localities and the 2.5D city dissolves and reforms without being told to.
+
+**Phase 3 — the front door** (3–5 evenings)
+Storyline card rail, hover-to-fly, locality click with the soft-boundary filter, home button. Event-card
+mode is deferred out of the demo.
+
+**Phase 4 — reading** (3–4 evenings)
+Stepped scroll narrative, chapter index, scrubber rescaled to the storyline, hash routing.
+
+**Total 12–18 evenings.** Explicitly excluded from the demo: visitable places, terrain, historical
+territory, phone layout, the event-card front-door mode, clustering, autoplay, real prose.
+
+**Fold in at the start of Phase 1, because it is one line and this is the moment:** `tsc --noEmit` in
+CI. `npm run build` is bare `vite build`, so nothing currently typechecks the strict settings in
+`tsconfig.json` — a type error ships silently today.
 
 ## Risks / open questions
 
