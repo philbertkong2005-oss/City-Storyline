@@ -36,6 +36,21 @@ export default function MapCanvas({
   const mapRef = useRef<Map | null>(null);
   const [flatMode, setFlatMode] = useState(false);
 
+  /**
+   * Held in a ref, and deliberately NOT a dependency of the map-creation effect.
+   *
+   * The parent's handler closes over the map instance it is given, so it gets a
+   * new identity the moment `onMapReady` sets it. Listing it as a dependency made
+   * that re-run the creation effect, whose cleanup calls `map.remove()` — the map
+   * destroyed and rebuilt itself on a loop and never rendered anything. Reading
+   * the latest handler through a ref keeps the click wired up without tying the
+   * map's lifetime to a callback's identity.
+   */
+  const onSelectLocalityRef = useRef(onSelectLocality);
+  useEffect(() => {
+    onSelectLocalityRef.current = onSelectLocality;
+  }, [onSelectLocality]);
+
   useEffect(() => {
     if (!containerRef.current) {
       return;
@@ -160,6 +175,13 @@ export default function MapCanvas({
           'text-halo-width': 1.4,
         },
       });
+
+      // Registered here rather than at map creation: a delegated listener
+      // queries its target layer on every matching event, and that layer does
+      // not exist until the style has loaded.
+      map?.on('click', LOCALITY_CIRCLE_LAYER, handleLocalityClick);
+      map?.on('mouseenter', LOCALITY_CIRCLE_LAYER, showPointer);
+      map?.on('mouseleave', LOCALITY_CIRCLE_LAYER, hidePointer);
     };
 
     const handleLocalityClick = (
@@ -167,7 +189,7 @@ export default function MapCanvas({
     ): void => {
       const localityId = event.features?.[0]?.properties?.id;
       if (typeof localityId === 'string') {
-        onSelectLocality(localityId);
+        onSelectLocalityRef.current(localityId);
       }
     };
 
@@ -184,9 +206,6 @@ export default function MapCanvas({
 
     map.on('load', setUpEraZoneLayer);
     map.on('load', setUpLocalityLayer);
-    map.on('click', LOCALITY_CIRCLE_LAYER, handleLocalityClick);
-    map.on('mouseenter', LOCALITY_CIRCLE_LAYER, showPointer);
-    map.on('mouseleave', LOCALITY_CIRCLE_LAYER, hidePointer);
 
     const inspectCoverage = (): void => {
       if (coverageChecked) {
@@ -235,7 +254,7 @@ export default function MapCanvas({
       onMapReady(null);
       map?.remove();
     };
-  }, [onMapReady, onMapUnavailable, onSelectLocality]);
+  }, [onMapReady, onMapUnavailable]);
 
   useEffect(() => {
     const map = mapRef.current;

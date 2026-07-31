@@ -317,13 +317,20 @@ export default function EventMarkers({
           continue;
         }
 
+        // Bail before querying rather than after failing. MapLibre *fires* an
+        // error event for an unknown layer instead of throwing, so a try/catch
+        // never sees it and the console fills with "layer does not exist" on
+        // every run before the style has loaded.
+        if (!map.getLayer('building-extrusions')) {
+          continue;
+        }
+
         let features: maplibregl.MapGeoJSONFeature[] = [];
         try {
           const point = map.project([facts.coordinates.lng, facts.coordinates.lat]);
           features = map.queryRenderedFeatures(point, { layers: ['building-extrusions'] });
         } catch {
-          // Map not ready to be queried yet (e.g. style still loading); retry
-          // on the next 'idle'.
+          // Map not ready to be queried yet; retry on the next 'idle'.
           continue;
         }
 
