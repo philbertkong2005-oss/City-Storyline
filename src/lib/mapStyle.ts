@@ -15,6 +15,17 @@ export const SELECTED_EVENT_BUILDING_COLOR = '#d97706';
 /** Opening camera position only. Extents now live per-locality in localities.json. */
 export const PRAGUE_CENTER: [number, number] = [14.4205, 50.088];
 
+/**
+ * The zoom at which the map stops being a chooser of places and becomes a city.
+ *
+ * One number, three consumers, and they have to agree or the handover looks
+ * broken: below it you get locality pins and no city; at or above it you get
+ * extruded buildings and event markers and no pins. Event markers in particular
+ * are city-scale detail — at country zoom they collapse into an unreadable line
+ * of overlapping pins that says nothing about where anything is.
+ */
+export const CITY_DETAIL_MIN_ZOOM = 13;
+
 export const MAP_STYLE: StyleSpecification = {
   version: 8,
   glyphs: 'https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf',
@@ -113,7 +124,7 @@ export const MAP_STYLE: StyleSpecification = {
       type: 'fill-extrusion',
       source: TILE_SOURCE,
       'source-layer': BUILDING_SOURCE_LAYER,
-      minzoom: 13,
+      minzoom: CITY_DETAIL_MIN_ZOOM,
       paint: {
         'fill-extrusion-color': [
           'case',

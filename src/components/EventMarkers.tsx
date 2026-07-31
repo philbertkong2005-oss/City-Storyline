@@ -8,7 +8,11 @@ import maplibregl, {
 
 import { nodeCoordinates, type Coordinates } from '../data/schema';
 import { approxMetersBetween } from '../lib/geo';
-import { BUILDING_SOURCE_LAYER, TILE_SOURCE } from '../lib/mapStyle';
+import {
+  BUILDING_SOURCE_LAYER,
+  CITY_DETAIL_MIN_ZOOM,
+  TILE_SOURCE,
+} from '../lib/mapStyle';
 import {
   getEntryMarkerState,
   type ResolvedEntry,
@@ -60,6 +64,12 @@ type MarkerRecord = {
   button: HTMLButtonElement;
   tooltipTitle: HTMLSpanElement;
   tooltipYear: HTMLSpanElement;
+  /**
+   * Whether the time filter admits this entry. Cached on the record so the zoom
+   * handler can re-evaluate visibility without re-deriving filter state for every
+   * marker on every frame of a flight.
+   */
+  inWindow: boolean;
 };
 
 type EventMarkersProps = {
@@ -124,14 +134,38 @@ function markerFactsFor(resolved: ResolvedEntry): MarkerFacts | null {
 function applyMarkerClasses(
   button: HTMLButtonElement,
   facts: MarkerFacts,
-  active: boolean,
   selected: boolean,
 ): void {
   button.classList.add('story-marker');
-  button.classList.toggle('story-marker--active', active);
-  button.classList.toggle('story-marker--hidden', !active);
   button.classList.toggle('story-marker--dashed', facts.isDashed);
   button.classList.toggle('story-marker--selected', selected);
+}
+
+/**
+ * Two independent reasons a marker is not on screen, and they have to be kept
+ * apart: the time window says whether this entry belongs to the story right now,
+ * and the zoom says whether the map is close enough to be showing city detail at
+ * all. A marker needs both.
+ *
+ * Markers are DOM elements rather than style layers, so unlike the buildings and
+ * the locality pins they get no `minzoom` for free — the threshold has to be
+ * applied by hand on every zoom change.
+ */
+function applyMarkerVisibility(record: MarkerRecord, zoom: number): void {
+  const visible = record.inWindow && zoom >= CITY_DETAIL_MIN_ZOOM;
+
+  record.button.classList.toggle('story-marker--active', visible);
+  record.button.classList.toggle('story-marker--hidden', !visible);
+  // Belt and braces: `display` cannot be defeated by a CSS specificity clash the
+  // way an opacity-only hide can, so a hidden pin is genuinely gone.
+  record.button.style.display = visible ? '' : 'none';
+  // Hidden markers must not stay in the tab order, or keyboard users land on
+  // pins they cannot see.
+  record.button.tabIndex = visible ? 0 : -1;
+  record.button.setAttribute('aria-hidden', visible ? 'false' : 'true');
+  if (!visible) {
+    record.popup.remove();
+  }
 }
 
 export default function EventMarkers({
@@ -217,6 +251,7 @@ export default function EventMarkers({
         button,
         tooltipTitle,
         tooltipYear,
+        inWindow: false,
       });
     }
 
@@ -260,9 +295,9 @@ export default function EventMarkers({
         continue;
       }
 
-      const active = getEntryMarkerState(resolved, timeFilter) === 'active';
+      record.inWindow = getEntryMarkerState(resolved, timeFilter) === 'active';
 
-      applyMarkerClasses(record.button, facts, active, selectedEventId === facts.id);
+      applyMarkerClasses(record.button, facts, selectedEventId === facts.id);
 
       // MapLibre stamps its own generic aria-label onto a custom marker element,
       // so re-apply ours or every pin announces as "Map marker".
@@ -270,16 +305,7 @@ export default function EventMarkers({
       record.tooltipTitle.textContent = facts.title;
       record.tooltipYear.textContent = facts.yearLabel;
 
-      // Belt and braces: `display` cannot be defeated by a CSS specificity clash the
-      // way an opacity-only hide can, so an out-of-window pin is genuinely gone.
-      record.button.style.display = active ? '' : 'none';
-      // Hidden markers must not stay in the tab order, or keyboard users land on
-      // pins they cannot see.
-      record.button.tabIndex = active ? 0 : -1;
-      record.button.setAttribute('aria-hidden', active ? 'false' : 'true');
-      if (!active) {
-        record.popup.remove();
-      }
+      applyMarkerVisibility(record, map.getZoom());
       record.popupRoot.render(
         <EventPopup
           entry={resolved}
@@ -290,7 +316,26 @@ export default function EventMarkers({
         />,
       );
     }
-  }, [entries, onReadMore, selectedEventId, timeFilter]);
+  }, [entries, map, onReadMore, selectedEventId, timeFilter]);
+
+  useEffect(() => {
+    const applyZoomVisibility = (): void => {
+      const zoom = map.getZoom();
+      for (const record of markerRecordsRef.current.values()) {
+        applyMarkerVisibility(record, zoom);
+      }
+    };
+
+    applyZoomVisibility();
+    // 'zoom' rather than 'zoomend': during a flight between localities the pins
+    // should thin out as the camera pulls back, not all reappear at once when it
+    // finally settles.
+    map.on('zoom', applyZoomVisibility);
+
+    return () => {
+      map.off('zoom', applyZoomVisibility);
+    };
+  }, [map]);
 
   useEffect(() => {
     const buildingIdByEvent = buildingIdByEventRef.current;

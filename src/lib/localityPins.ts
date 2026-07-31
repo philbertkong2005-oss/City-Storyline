@@ -1,4 +1,5 @@
 import type { Locality } from '../data/schema';
+import { CITY_DETAIL_MIN_ZOOM } from './mapStyle';
 
 export const LOCALITY_SOURCE = 'localities';
 export const LOCALITY_CIRCLE_LAYER = 'locality-pins';
@@ -13,7 +14,7 @@ export const LOCALITY_LABEL_LAYER = 'locality-labels';
  * place; zoomed in you are inside one, and a pin hovering over the rooftops
  * would be neither.
  */
-export const LOCALITY_PIN_MAX_ZOOM = 13;
+export const LOCALITY_PIN_MAX_ZOOM = CITY_DETAIL_MIN_ZOOM;
 
 export function toLocalityFeatureCollection(
   localities: Locality[],
