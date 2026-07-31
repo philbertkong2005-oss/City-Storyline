@@ -20,11 +20,22 @@ type PanelButtonConfig = {
 };
 
 const panelButtons: PanelButtonConfig[] = [
+  { id: 'header', title: 'Toggle title bar', label: 'Title bar' },
   { id: 'timeline', title: 'Toggle timeline panel', label: 'Timeline' },
   { id: 'chapters', title: 'Toggle chapters panel', label: 'Chapters' },
   { id: 'eventList', title: 'Toggle event list panel', label: 'Event list' },
   { id: 'description', title: 'Toggle description panel', label: 'Description' },
 ];
+
+function HeaderIcon() {
+  return (
+    <svg viewBox="0 0 20 20" aria-hidden="true" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="4" width="14" height="4" rx="1.25" />
+      <path d="M3 12h9" />
+      <path d="M3 15.5h6" />
+    </svg>
+  );
+}
 
 function TimelineIcon() {
   return (
@@ -98,6 +109,8 @@ function SideBySideIcon() {
 
 function iconForPanel(panelId: PanelId) {
   switch (panelId) {
+    case 'header':
+      return <HeaderIcon />;
     case 'timeline':
       return <TimelineIcon />;
     case 'chapters':

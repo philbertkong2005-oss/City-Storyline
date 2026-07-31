@@ -320,7 +320,9 @@ export default function MapCanvas({
   }, [activeChapterZone]);
 
   return (
-    <div className="relative h-full overflow-hidden rounded-[2rem] border border-white/60 shadow-panel">
+    // Edge to edge: the map is the background the chrome floats over now, so it
+    // carries no card border or rounding of its own.
+    <div className="relative h-full overflow-hidden">
       <div ref={containerRef} className="h-full w-full" />
       {flatMode ? (
         <div className="pointer-events-none absolute left-4 top-4 rounded-full bg-[#f8f5ef]/90 px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-slate-700 shadow">

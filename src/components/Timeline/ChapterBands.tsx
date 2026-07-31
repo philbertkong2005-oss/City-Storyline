@@ -39,7 +39,9 @@ export default function ChapterBands({
   const allActive = timeFilter.kind === 'all';
 
   return (
-    <div className="min-w-0 rounded-[1.5rem] border border-white/60 bg-[#f8f5ef]/75 p-2 shadow-panel backdrop-blur">
+    // No card of its own: this nests inside the floating timeline bar, which
+    // supplies the surface.
+    <div className="min-w-0 px-2.5 pb-2.5 pt-2">
       <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-5 lg:grid-cols-9">
         <button
           type="button"

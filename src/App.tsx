@@ -29,7 +29,6 @@ import {
   getVisibleEntries,
   MAX_RIGHT_COLUMN_WIDTH_COLUMNS,
   MAX_RIGHT_COLUMN_WIDTH_STACKED,
-  MIN_BOTTOM_REGION_HEIGHT,
   MIN_RIGHT_COLUMN_WIDTH,
   resolveStorylineEntries,
   type PanelId,
@@ -147,19 +146,6 @@ function getRightColumnWidthFromRatio(
   return getClampedRightColumnWidth(ratio * availableWidth, availableWidth, minWidth, maxAllowedWidth);
 }
 
-function getClampedBottomRegionHeight(
-  rawHeight: number,
-  naturalHeight: number,
-  availableHeight: number,
-): number {
-  const maxHeight = Math.min(
-    Math.max(MIN_BOTTOM_REGION_HEIGHT, availableHeight * 0.6),
-    Math.max(MIN_BOTTOM_REGION_HEIGHT, availableHeight - 1),
-  );
-  const baseHeight = rawHeight === 0 ? naturalHeight : rawHeight;
-  return clamp(baseHeight, MIN_BOTTOM_REGION_HEIGHT, maxHeight);
-}
-
 function getRightColumnSplitHeights(
   ratio: number,
   totalHeight: number,
@@ -223,17 +209,10 @@ export default function App() {
   const [mapRetryKey, setMapRetryKey] = useState(0);
 
   const {
-    ref: workspaceRef,
-    setRef: setWorkspaceRef,
-    size: workspaceSize,
-  } = useMeasuredRef<HTMLDivElement>();
-  const {
     ref: mainRegionRef,
     setRef: setMainRegionRef,
     size: mainRegionSize,
   } = useMeasuredRef<HTMLDivElement>();
-  const { setRef: setBottomMeasureRef, size: bottomContentSize } =
-    useMeasuredRef<HTMLDivElement>();
   const rightColumnRef = useRef<HTMLDivElement | null>(null);
 
   const {
@@ -258,7 +237,6 @@ export default function App() {
     togglePanel,
     resetLayout,
     setRightColumnWidthRatio,
-    setBottomRegionHeight,
     setRightColumnSplit,
     setRightColumnOrientation,
     issueFlightToken,
@@ -332,13 +310,6 @@ export default function App() {
     ? chapters.find((chapter) => chapter.id === panelEntry.entry.chapterId) ?? null
     : null;
 
-  const bottomRegionHeight = showBottomRegion
-    ? getClampedBottomRegionHeight(
-        layout.bottomRegionHeight,
-        bottomContentSize.scrollHeight,
-        workspaceSize.height,
-      )
-    : 0;
 
   const rightColumnMinWidth = isRightColumnColumns
     ? Math.max(MIN_RIGHT_COLUMN_WIDTH, MIN_RIGHT_PANEL_WIDTH * 2)
@@ -516,36 +487,6 @@ export default function App() {
     ],
   );
 
-  const handleBottomDrag = useCallback(
-    (_clientX: number, clientY: number) => {
-      const rect = workspaceRef.current?.getBoundingClientRect();
-      if (!rect) {
-        return;
-      }
-
-      setBottomRegionHeight(
-        getClampedBottomRegionHeight(
-          rect.bottom - clientY,
-          bottomContentSize.scrollHeight,
-          rect.height,
-        ),
-      );
-    },
-    [bottomContentSize.scrollHeight, setBottomRegionHeight],
-  );
-
-  const handleBottomStep = useCallback(
-    (delta: number) => {
-      setBottomRegionHeight(
-        getClampedBottomRegionHeight(
-          bottomRegionHeight - delta,
-          bottomContentSize.scrollHeight,
-          workspaceSize.height,
-        ),
-      );
-    },
-    [bottomContentSize.scrollHeight, bottomRegionHeight, setBottomRegionHeight, workspaceSize.height],
-  );
 
   const handleRightColumnSplitDrag = useCallback(
     (clientX: number, clientY: number) => {
@@ -661,295 +602,302 @@ export default function App() {
     );
   }
 
-  return (
-    <main className="h-screen overflow-hidden px-4 py-4 md:px-6 md:py-6">
-      <div className="mx-auto flex h-full max-w-[1600px] flex-col gap-3">
-        <header className="flex shrink-0 flex-wrap items-baseline justify-between gap-x-6 gap-y-1 rounded-[1.5rem] border border-white/60 bg-[#f8f5ef]/80 px-6 py-3 shadow-panel backdrop-blur">
-          <div className="flex items-baseline gap-4">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-slate-500">
-              City-Storyline
-            </p>
-            <h1 className="font-display text-2xl leading-tight text-slate-950 md:text-[1.75rem]">
-              {activeStoryline ? activeStoryline.title : 'No storyline loaded'}
-            </h1>
-          </div>
-          <p className="text-sm text-slate-600">
-            {activeStoryline
-              ? `${resolvedEntries.length} entries across ${chapters.length} chapters, ${describeStorylineSpan(activeStoryline)}.`
-              : ''}
-          </p>
-        </header>
+  // Chrome is built once and placed twice: floating over the map when there is a
+  // map, and in normal flow in the list fallback, where floating it would bury
+  // the only content on screen.
+  const topBar = panelVisibility.header ? (
+    <header className="pointer-events-auto flex w-fit max-w-full flex-wrap items-center gap-x-5 gap-y-1.5 rounded-[1.25rem] border border-white/50 bg-[#f8f5ef]/75 px-5 py-2.5 shadow-panel backdrop-blur-md">
+      <div className="flex min-w-0 items-baseline gap-3">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-slate-500">
+          City-Storyline
+        </p>
+        <h1 className="truncate font-display text-xl leading-tight text-slate-950">
+          {activeStoryline ? activeStoryline.title : 'No storyline loaded'}
+        </h1>
+      </div>
 
-        {/*
-          Phase 1 stand-in for the front door. The card rail, hover-to-fly and
-          locality filter are Phase 3; this exists only so the same node can be
-          read from two storylines, which is what Phase 1 has to prove.
-        */}
-        <div className="flex shrink-0 flex-wrap items-center gap-2 rounded-[1.5rem] border border-white/60 bg-[#f8f5ef]/80 px-4 py-2.5 shadow-panel backdrop-blur">
-          <p className="mr-1 text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-500">
-            Storyline
-          </p>
-          {storylines.map((storyline) => {
-            const active = storyline.id === activeStorylineId;
-            return (
-              <button
-                key={storyline.id}
-                type="button"
-                onClick={() => handleStorylineSelect(storyline.id)}
-                aria-pressed={active}
+      {/*
+        Phase 1 stand-in for the front door. The card rail, hover-to-fly and
+        locality filter are Phase 3; this exists only so the same node can be
+        read from two storylines, which is what Phase 1 has to prove.
+      */}
+      <div className="flex flex-wrap items-center gap-1.5">
+        {storylines.map((storyline) => {
+          const active = storyline.id === activeStorylineId;
+          return (
+            <button
+              key={storyline.id}
+              type="button"
+              onClick={() => handleStorylineSelect(storyline.id)}
+              aria-pressed={active}
+              className={[
+                'flex items-baseline gap-2 rounded-full border px-3 py-1 text-sm transition',
+                active
+                  ? 'border-slate-900 bg-slate-900 text-[#f8f5ef]'
+                  : 'border-slate-200 bg-white/80 text-slate-800 hover:border-slate-400 hover:bg-white',
+              ].join(' ')}
+            >
+              <span className="font-semibold">{storyline.title}</span>
+              <span
                 className={[
-                  'flex items-baseline gap-2 rounded-full border px-3 py-1 text-sm transition',
-                  active
-                    ? 'border-slate-900 bg-slate-900 text-[#f8f5ef]'
-                    : 'border-slate-200 bg-white/80 text-slate-800 hover:border-slate-400 hover:bg-white',
+                  'text-[10px] font-semibold uppercase tracking-[0.16em]',
+                  active ? 'text-[#f8f5ef]/70' : 'text-slate-500',
                 ].join(' ')}
               >
-                <span className="font-semibold">{storyline.title}</span>
-                <span
-                  className={[
-                    'text-[10px] font-semibold uppercase tracking-[0.16em]',
-                    active ? 'text-[#f8f5ef]/70' : 'text-slate-500',
-                  ].join(' ')}
-                >
-                  {storyline.type}
-                </span>
-              </button>
-            );
-          })}
-        </div>
+                {storyline.type}
+              </span>
+            </button>
+          );
+        })}
+      </div>
 
-        {bannerMessage ? (
-          <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 rounded-[1.5rem] border border-amber-300/80 bg-amber-50 px-4 py-2.5 text-sm text-amber-950 shadow-sm">
-            <p>{bannerMessage}</p>
-            <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={handleRetryMap}
-                className="rounded-full border border-amber-500 bg-amber-100 px-3 py-1 font-semibold transition hover:bg-amber-200"
-              >
-                Try the map again
-              </button>
-              <button
-                type="button"
-                onClick={dismissBanner}
-                className="rounded-full border border-amber-400 px-3 py-1 font-semibold transition hover:bg-amber-100"
-              >
-                Dismiss
-              </button>
+      {activeStoryline ? (
+        <p className="text-xs text-slate-500">
+          {resolvedEntries.length} entries · {chapters.length} chapters ·{' '}
+          {describeStorylineSpan(activeStoryline)}
+        </p>
+      ) : null}
+    </header>
+  ) : null;
+
+  const banner = bannerMessage ? (
+    <div className="pointer-events-auto flex w-fit max-w-full flex-wrap items-center gap-3 rounded-[1.25rem] border border-amber-300/80 bg-amber-50/90 px-4 py-2.5 text-sm text-amber-950 shadow-panel backdrop-blur-md">
+      <p>{bannerMessage}</p>
+      <div className="flex flex-wrap gap-2">
+        <button
+          type="button"
+          onClick={handleRetryMap}
+          className="rounded-full border border-amber-500 bg-amber-100 px-3 py-1 font-semibold transition hover:bg-amber-200"
+        >
+          Try the map again
+        </button>
+        <button
+          type="button"
+          onClick={dismissBanner}
+          className="rounded-full border border-amber-400 px-3 py-1 font-semibold transition hover:bg-amber-100"
+        >
+          Dismiss
+        </button>
+      </div>
+    </div>
+  ) : null;
+
+  // Timeline and chapter chips are one bar now rather than two stacked cards.
+  // Capped and scrollable so a storyline with many chapters cannot grow the bar
+  // until it swallows the map.
+  const bottomBar = showBottomRegion ? (
+    <div className="pointer-events-auto max-h-[45vh] min-w-0 overflow-y-auto overflow-x-hidden rounded-[1.25rem] border border-white/50 bg-[#f8f5ef]/80 shadow-panel backdrop-blur-md">
+      {panelVisibility.timeline ? (
+        <>
+          <WindowNote
+            title={windowNote.title}
+            blurb={windowNote.blurb}
+            visibleCount={visibleEntries.length}
+            totalCount={resolvedEntries.length}
+          />
+          <Scrubber
+            minYear={yearRange.minYear}
+            maxYear={yearRange.maxYear}
+            year={navigation.year}
+            onYearChange={handleYearChange}
+          />
+        </>
+      ) : null}
+      {panelVisibility.chapters ? (
+        <ChapterBands
+          chapters={chapters}
+          spanLabel={activeStoryline ? describeStorylineSpan(activeStoryline) : ''}
+          timeFilter={timeFilter}
+          onSelectChapter={handleChapterSelect}
+          onSelectAll={handleSelectAll}
+        />
+      ) : null}
+    </div>
+  ) : null;
+
+  const rightColumn = showRightColumn ? (
+    <>
+      <Splitter
+        orientation="vertical"
+        ariaLabel="Resize map and side panels"
+        onDragMove={(clientX) => handleVerticalDrag(clientX)}
+        onStep={handleVerticalStep}
+      />
+      <div
+        ref={rightColumnRef}
+        style={{ width: rightColumnWidth }}
+        className={[
+          'flex min-h-0 shrink-0 py-3 pr-3',
+          rightColumnOrientation === 'columns' ? 'flex-row' : 'flex-col',
+        ].join(' ')}
+      >
+        {panelVisibility.eventList &&
+        panelVisibility.description &&
+        rightColumnOrientation === 'stacked' &&
+        rightColumnHeights ? (
+          <>
+            <div
+              style={{ height: rightColumnHeights.topHeight }}
+              className="min-h-0 shrink-0"
+            >
+              <ListFallback
+                storylineTitle={activeStoryline?.title ?? ''}
+                groups={entryGroups}
+                currentChapterId={currentChapter?.id ?? null}
+                selectedEventId={navigation.selectedEventId}
+                onOpenEntry={handleOpenEntry}
+              />
             </div>
+            <Splitter
+              orientation="horizontal"
+              ariaLabel="Resize event list and description panels"
+              onDragMove={handleRightColumnSplitDrag}
+              onStep={handleRightColumnSplitStep}
+            />
+            <div
+              style={{ height: rightColumnHeights.bottomHeight }}
+              className="min-h-0 shrink-0"
+            >
+              <EventPanel
+                entry={panelEntry}
+                chapter={panelChapter}
+                storylineTitle={activeStoryline?.title ?? ''}
+                onClose={closePanel}
+              />
+            </div>
+          </>
+        ) : isRightColumnColumns && rightColumnWidths ? (
+          <>
+            <div
+              style={{ width: rightColumnWidths.leftWidth }}
+              className="min-h-0 min-w-0 shrink-0"
+            >
+              <ListFallback
+                storylineTitle={activeStoryline?.title ?? ''}
+                groups={entryGroups}
+                currentChapterId={currentChapter?.id ?? null}
+                selectedEventId={navigation.selectedEventId}
+                onOpenEntry={handleOpenEntry}
+              />
+            </div>
+            <Splitter
+              orientation="vertical"
+              ariaLabel="Resize event list and description panels"
+              onDragMove={handleRightColumnSplitDrag}
+              onStep={handleRightColumnSplitStep}
+            />
+            <div
+              style={{ width: rightColumnWidths.rightWidth }}
+              className="min-h-0 min-w-0 shrink-0"
+            >
+              <EventPanel
+                entry={panelEntry}
+                chapter={panelChapter}
+                storylineTitle={activeStoryline?.title ?? ''}
+                onClose={closePanel}
+              />
+            </div>
+          </>
+        ) : panelVisibility.eventList ? (
+          <div className="min-h-0 flex-1">
+            <ListFallback
+              storylineTitle={activeStoryline?.title ?? ''}
+              groups={entryGroups}
+              currentChapterId={currentChapter?.id ?? null}
+              selectedEventId={navigation.selectedEventId}
+              onOpenEntry={handleOpenEntry}
+            />
+          </div>
+        ) : panelVisibility.description ? (
+          <div className="min-h-0 flex-1">
+            <EventPanel
+              entry={panelEntry}
+              chapter={panelChapter}
+              storylineTitle={activeStoryline?.title ?? ''}
+              onClose={closePanel}
+            />
           </div>
         ) : null}
+      </div>
+    </>
+  ) : null;
 
-        <div ref={setWorkspaceRef} className="flex min-h-0 flex-1 gap-3">
-          <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-            <div ref={setMainRegionRef} className="flex min-h-0 min-w-0 flex-1">
-              {desktopMapMode ? (
-                <>
-                  <div className="min-h-0 min-w-0 flex-1">
-                    <MapCanvas
-                      key={mapRetryKey}
-                      onMapReady={setMap}
-                      onMapUnavailable={reportUnsupported}
-                      activeChapterZone={activeChapterZone}
-                      localities={localities}
-                      onSelectLocality={handleSelectLocality}
-                    />
-                    {map ? (
-                      <EventMarkers
-                        map={map}
-                        entries={resolvedEntries}
-                        timeFilter={timeFilter}
-                        selectedEventId={navigation.selectedEventId}
-                        onSelectEntry={handleOpenEntry}
-                        onReadMore={handleOpenEntry}
-                      />
-                    ) : null}
-                  </div>
-
-                  {showRightColumn ? (
-                    <>
-                      <Splitter
-                        orientation="vertical"
-                        ariaLabel="Resize map and side panels"
-                        onDragMove={(clientX) => handleVerticalDrag(clientX)}
-                        onStep={handleVerticalStep}
-                      />
-                      <div
-                        ref={rightColumnRef}
-                        style={{ width: rightColumnWidth }}
-                        className={[
-                          'flex min-h-0 shrink-0',
-                          rightColumnOrientation === 'columns' ? 'flex-row' : 'flex-col',
-                        ].join(' ')}
-                      >
-                        {panelVisibility.eventList &&
-                        panelVisibility.description &&
-                        rightColumnOrientation === 'stacked' &&
-                        rightColumnHeights ? (
-                          <>
-                            <div
-                              style={{ height: rightColumnHeights.topHeight }}
-                              className="min-h-0 shrink-0"
-                            >
-                              <ListFallback
-                                storylineTitle={activeStoryline?.title ?? ''}
-                                groups={entryGroups}
-                                currentChapterId={currentChapter?.id ?? null}
-                                selectedEventId={navigation.selectedEventId}
-                                onOpenEntry={handleOpenEntry}
-                              />
-                            </div>
-                            <Splitter
-                              orientation="horizontal"
-                              ariaLabel="Resize event list and description panels"
-                              onDragMove={handleRightColumnSplitDrag}
-                              onStep={handleRightColumnSplitStep}
-                            />
-                            <div
-                              style={{ height: rightColumnHeights.bottomHeight }}
-                              className="min-h-0 shrink-0"
-                            >
-                              <EventPanel
-                                entry={panelEntry}
-                                chapter={panelChapter}
-                                storylineTitle={activeStoryline?.title ?? ''}
-                                onClose={closePanel}
-                              />
-                            </div>
-                          </>
-                        ) : isRightColumnColumns && rightColumnWidths ? (
-                          <>
-                            <div
-                              style={{ width: rightColumnWidths.leftWidth }}
-                              className="min-h-0 min-w-0 shrink-0"
-                            >
-                              <ListFallback
-                                storylineTitle={activeStoryline?.title ?? ''}
-                                groups={entryGroups}
-                                currentChapterId={currentChapter?.id ?? null}
-                                selectedEventId={navigation.selectedEventId}
-                                onOpenEntry={handleOpenEntry}
-                              />
-                            </div>
-                            <Splitter
-                              orientation="vertical"
-                              ariaLabel="Resize event list and description panels"
-                              onDragMove={handleRightColumnSplitDrag}
-                              onStep={handleRightColumnSplitStep}
-                            />
-                            <div
-                              style={{ width: rightColumnWidths.rightWidth }}
-                              className="min-h-0 min-w-0 shrink-0"
-                            >
-                              <EventPanel
-                                entry={panelEntry}
-                                chapter={panelChapter}
-                                storylineTitle={activeStoryline?.title ?? ''}
-                                onClose={closePanel}
-                              />
-                            </div>
-                          </>
-                        ) : panelVisibility.eventList ? (
-                          <div className="min-h-0 flex-1">
-                            <ListFallback
-                              storylineTitle={activeStoryline?.title ?? ''}
-                              groups={entryGroups}
-                              currentChapterId={currentChapter?.id ?? null}
-                              selectedEventId={navigation.selectedEventId}
-                              onOpenEntry={handleOpenEntry}
-                            />
-                          </div>
-                        ) : panelVisibility.description ? (
-                          <div className="min-h-0 flex-1">
-                            <EventPanel
-                              entry={panelEntry}
-                              chapter={panelChapter}
-                              storylineTitle={activeStoryline?.title ?? ''}
-                              onClose={closePanel}
-                            />
-                          </div>
-                        ) : null}
-                      </div>
-                    </>
-                  ) : null}
-                </>
-              ) : (
-                <div className="flex min-h-0 flex-1 flex-col gap-3">
-                  <div className="min-h-0 flex-1">
-                    <ListFallback
-                      storylineTitle={activeStoryline?.title ?? ''}
-                      groups={entryGroups}
-                      currentChapterId={currentChapter?.id ?? null}
-                      selectedEventId={navigation.selectedEventId}
-                      onOpenEntry={handleOpenEntry}
-                    />
-                  </div>
-                  {showStackedDescription ? (
-                    <div className="min-h-[12rem] shrink-0">
-                      <EventPanel
-                        entry={panelEntry}
-                        chapter={panelChapter}
-                        storylineTitle={activeStoryline?.title ?? ''}
-                        onClose={closePanel}
-                      />
-                    </div>
-                  ) : null}
-                </div>
-              )}
-            </div>
-
-            {showBottomRegion ? (
+  return (
+    <main className="relative h-screen overflow-hidden">
+      <div className="absolute inset-0 flex">
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+          <div ref={setMainRegionRef} className="flex min-h-0 min-w-0 flex-1">
+            {desktopMapMode ? (
               <>
-                {desktopMapMode ? (
-                  <Splitter
-                    orientation="horizontal"
-                    ariaLabel="Resize map and bottom panels"
-                    onDragMove={handleBottomDrag}
-                    onStep={handleBottomStep}
+                {/*
+                  The map runs edge to edge and the chrome floats over it, anchored
+                  to this container rather than to the viewport so it never covers
+                  the side panels' own controls.
+                */}
+                <div className="relative min-h-0 min-w-0 flex-1">
+                  <MapCanvas
+                    key={mapRetryKey}
+                    onMapReady={setMap}
+                    onMapUnavailable={reportUnsupported}
+                    activeChapterZone={activeChapterZone}
+                    localities={localities}
+                    onSelectLocality={handleSelectLocality}
                   />
-                ) : null}
-                <div
-                  style={desktopMapMode ? { height: bottomRegionHeight } : undefined}
-                  className={[
-                    'min-h-0 min-w-0 overflow-y-auto overflow-x-hidden',
-                    desktopMapMode ? 'shrink-0' : 'mt-3',
-                  ].join(' ')}
-                >
-                  <div ref={setBottomMeasureRef} className="flex min-h-0 min-w-0 flex-col gap-2">
-                    {panelVisibility.timeline ? (
-                      <div className="min-w-0 rounded-[1.5rem] border border-white/60 bg-[#f8f5ef]/85 shadow-panel backdrop-blur">
-                        <WindowNote
-                          title={windowNote.title}
-                          blurb={windowNote.blurb}
-                          visibleCount={visibleEntries.length}
-                          totalCount={resolvedEntries.length}
-                        />
-                        <Scrubber
-                          minYear={yearRange.minYear}
-                          maxYear={yearRange.maxYear}
-                          year={navigation.year}
-                          onYearChange={handleYearChange}
-                        />
-                      </div>
-                    ) : null}
-                    {panelVisibility.chapters ? (
-                      <ChapterBands
-                        chapters={chapters}
-                        spanLabel={
-                          activeStoryline ? describeStorylineSpan(activeStoryline) : ''
-                        }
-                        timeFilter={timeFilter}
-                        onSelectChapter={handleChapterSelect}
-                        onSelectAll={handleSelectAll}
-                      />
-                    ) : null}
+                  {map ? (
+                    <EventMarkers
+                      map={map}
+                      entries={resolvedEntries}
+                      timeFilter={timeFilter}
+                      selectedEventId={navigation.selectedEventId}
+                      onSelectEntry={handleOpenEntry}
+                      onReadMore={handleOpenEntry}
+                    />
+                  ) : null}
+
+                  {/* pointer-events-none on the wrapper, auto on the bars, so the
+                      map stays draggable in the gaps around them. */}
+                  <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex flex-col items-start gap-2 p-3">
+                    {topBar}
+                    {banner}
+                  </div>
+                  <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 p-3">
+                    {bottomBar}
                   </div>
                 </div>
-              </>
-            ) : null}
-          </div>
 
-          {showRail ? (
+                {rightColumn}
+              </>
+            ) : (
+              <div className="flex min-h-0 flex-1 flex-col gap-3 p-3">
+                {topBar}
+                {banner}
+                <div className="min-h-0 flex-1">
+                  <ListFallback
+                    storylineTitle={activeStoryline?.title ?? ''}
+                    groups={entryGroups}
+                    currentChapterId={currentChapter?.id ?? null}
+                    selectedEventId={navigation.selectedEventId}
+                    onOpenEntry={handleOpenEntry}
+                  />
+                </div>
+                {showStackedDescription ? (
+                  <div className="min-h-[12rem] shrink-0">
+                    <EventPanel
+                      entry={panelEntry}
+                      chapter={panelChapter}
+                      storylineTitle={activeStoryline?.title ?? ''}
+                      onClose={closePanel}
+                    />
+                  </div>
+                ) : null}
+                {bottomBar}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {showRail ? (
+          <div className="z-30 py-3 pr-3">
             <IconRail
               panels={panelVisibility}
               rightColumnOrientation={rightColumnOrientation}
@@ -958,8 +906,8 @@ export default function App() {
               onToggleOrientation={handleToggleRightColumnOrientation}
               onReset={handleResetLayout}
             />
-          ) : null}
-        </div>
+          </div>
+        ) : null}
       </div>
     </main>
   );

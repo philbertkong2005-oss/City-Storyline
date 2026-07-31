@@ -27,8 +27,6 @@ export const MAX_RIGHT_COLUMN_WIDTH_COLUMNS = 64 * 16;
  * both extremes rather than shrinking to unreadable or growing to absurd.
  */
 export const DEFAULT_RIGHT_COLUMN_WIDTH_RATIO = 0.25;
-export const MIN_BOTTOM_REGION_HEIGHT = 6 * 16;
-export const DEFAULT_BOTTOM_REGION_HEIGHT = 0;
 export const DEFAULT_RIGHT_COLUMN_SPLIT = 0.5;
 export const DEFAULT_RIGHT_COLUMN_ORIENTATION = 'stacked';
 
@@ -63,6 +61,7 @@ export const centuryOf = (year: number): number => Math.floor(year / 100);
 export const centuryLabel = (century: number): string => `${century}00s`;
 
 export type PanelId =
+  | 'header'
   | 'timeline'
   | 'chapters'
   | 'eventList'
@@ -70,10 +69,14 @@ export type PanelId =
 
 export type PanelVisibility = Record<PanelId, boolean>;
 
+/**
+ * The chrome floats over the map rather than taking space from it, so there is no
+ * bottom-region height to store any more: the map is always full-bleed, and the
+ * timeline bar is sized by its own content.
+ */
 export type LayoutState = {
   panels: PanelVisibility;
   rightColumnWidthRatio: number;
-  bottomRegionHeight: number;
   rightColumnSplit: number;
   rightColumnOrientation: 'stacked' | 'columns';
 };
@@ -81,6 +84,7 @@ export type LayoutState = {
 type AppStatus = 'idle' | 'loading' | 'ready' | 'error';
 
 const defaultPanels: PanelVisibility = {
+  header: true,
   timeline: true,
   chapters: true,
   eventList: true,
@@ -90,7 +94,6 @@ const defaultPanels: PanelVisibility = {
 const defaultLayoutState: LayoutState = {
   panels: defaultPanels,
   rightColumnWidthRatio: DEFAULT_RIGHT_COLUMN_WIDTH_RATIO,
-  bottomRegionHeight: DEFAULT_BOTTOM_REGION_HEIGHT,
   rightColumnSplit: DEFAULT_RIGHT_COLUMN_SPLIT,
   rightColumnOrientation: DEFAULT_RIGHT_COLUMN_ORIENTATION,
 };
@@ -121,7 +124,6 @@ function parseStoredLayout(): LayoutState {
 
     const panels = parsed.panels;
     const rightColumnWidthRatio = parsed.rightColumnWidthRatio;
-    const bottomRegionHeight = parsed.bottomRegionHeight;
     const rightColumnSplit = parsed.rightColumnSplit;
     const rightColumnOrientation = parsed.rightColumnOrientation;
 
@@ -135,10 +137,6 @@ function parseStoredLayout(): LayoutState {
       !Number.isFinite(rightColumnWidthRatio) ||
       rightColumnWidthRatio < 0.05 ||
       rightColumnWidthRatio > 0.95 ||
-      typeof bottomRegionHeight !== 'number' ||
-      !Number.isFinite(bottomRegionHeight) ||
-      bottomRegionHeight < 0 ||
-      (bottomRegionHeight !== 0 && bottomRegionHeight < MIN_BOTTOM_REGION_HEIGHT) ||
       typeof rightColumnSplit !== 'number' ||
       !Number.isFinite(rightColumnSplit) ||
       rightColumnSplit < 0 ||
@@ -150,13 +148,16 @@ function parseStoredLayout(): LayoutState {
 
     return {
       panels: {
+        // Added after this key was already being persisted, so a stored layout
+        // from before it existed is missing it. Default to shown rather than
+        // discarding the whole saved layout over one absent boolean.
+        header: typeof panels.header === 'boolean' ? panels.header : true,
         timeline: panels.timeline,
         chapters: panels.chapters,
         eventList: panels.eventList,
         description: panels.description,
       },
       rightColumnWidthRatio,
-      bottomRegionHeight,
       rightColumnSplit,
       rightColumnOrientation,
     };
@@ -191,7 +192,6 @@ type AppStore = {
   hidePanel: (panelId: PanelId) => void;
   resetLayout: () => void;
   setRightColumnWidthRatio: (ratio: number) => void;
-  setBottomRegionHeight: (height: number) => void;
   setRightColumnSplit: (ratio: number) => void;
   setRightColumnOrientation: (orientation: LayoutState['rightColumnOrientation']) => void;
   issueFlightToken: () => number;
@@ -416,15 +416,6 @@ export const useAppStore = create<AppStore>((set, get) => ({
       layout: {
         ...state.layout,
         rightColumnWidthRatio: clampRatio(ratio),
-      },
-    }));
-    persistLayout(get().layout);
-  },
-  setBottomRegionHeight(height) {
-    set((state) => ({
-      layout: {
-        ...state.layout,
-        bottomRegionHeight: height,
       },
     }));
     persistLayout(get().layout);
