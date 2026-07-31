@@ -11,7 +11,7 @@ import { nodeCoordinates, type Chapter, type Storyline } from './data/schema';
 import EventMarkers from './components/EventMarkers';
 import EventPanel from './components/EventPanel';
 import IconRail from './components/IconRail';
-import ListFallback from './components/ListFallback';
+import StoryNarrative from './components/StoryNarrative';
 import MapCanvas from './components/MapCanvas';
 import { getChapterZoneFeature } from './lib/eraZones';
 import Splitter from './components/Splitter';
@@ -30,6 +30,7 @@ import {
 import { getLocalityFor } from './lib/geo';
 import { topGenres } from './lib/genres';
 import { getLocalityProximity } from './lib/localityFilter';
+import { formatRoute, parseHash, routesEqual, type Route } from './lib/routing';
 import { useReducedMotion } from './lib/useReducedMotion';
 import { StaticJsonRepository } from './lib/repository';
 import { useMapHealth } from './lib/useMapHealth';
@@ -538,6 +539,117 @@ export default function App() {
   }, [cancelPreview, returnToChooser]);
 
   /**
+   * Hash routing, both directions (Decision #5).
+   *
+   * The two effects below would feed each other forever without a guard, so
+   * `appliedRouteRef` records the last route this component reconciled: whichever
+   * side moves first, the other recognises the result as already-applied and
+   * stops. Without it, writing the hash fires hashchange, which sets state, which
+   * writes the hash.
+   */
+  const appliedRouteRef = useRef<Route | null>(null);
+
+  const applyRoute = useCallback(
+    (route: Route) => {
+      appliedRouteRef.current = route;
+
+      if (route.kind === 'chooser') {
+        returnToChooser();
+        return;
+      }
+
+      const target = useAppStore
+        .getState()
+        .storylines.find((storyline) => storyline.id === route.storylineId);
+      if (!target) {
+        // An unknown id in a shared link lands on the chooser rather than a blank
+        // screen.
+        returnToChooser();
+        return;
+      }
+
+      if (useAppStore.getState().activeStorylineId !== route.storylineId) {
+        enterStoryline(route.storylineId);
+      }
+
+      if (route.entryRef) {
+        openPanel(route.entryRef);
+      }
+    },
+    [enterStoryline, openPanel, returnToChooser],
+  );
+
+  // Hash → state, on first load and on every back/forward.
+  useEffect(() => {
+    if (status !== 'ready') {
+      return;
+    }
+
+    const syncFromHash = (): void => {
+      const route = parseHash(window.location.hash);
+      if (appliedRouteRef.current && routesEqual(appliedRouteRef.current, route)) {
+        return;
+      }
+      applyRoute(route);
+    };
+
+    syncFromHash();
+    window.addEventListener('hashchange', syncFromHash);
+    return () => window.removeEventListener('hashchange', syncFromHash);
+  }, [applyRoute, status]);
+
+  // State → hash.
+  useEffect(() => {
+    if (status !== 'ready') {
+      return;
+    }
+
+    const route: Route =
+      mode === 'reading' && activeStorylineId
+        ? { kind: 'storyline', storylineId: activeStorylineId, entryRef: panelEventId }
+        : { kind: 'chooser' };
+
+    if (appliedRouteRef.current && routesEqual(appliedRouteRef.current, route)) {
+      return;
+    }
+
+    const previous = appliedRouteRef.current;
+    appliedRouteRef.current = route;
+
+    // Entering or leaving a storyline is deliberate navigation and earns a
+    // history entry, so Back returns to the chooser. Moving between entries does
+    // not: scrolling the narrative would otherwise push one entry per step and
+    // bury the way out under twenty presses of Back.
+    const isNavigation =
+      !previous || previous.kind !== route.kind ||
+      (previous.kind === 'storyline' &&
+        route.kind === 'storyline' &&
+        previous.storylineId !== route.storylineId);
+
+    const url = `${window.location.pathname}${window.location.search}${formatRoute(route)}`;
+    if (isNavigation) {
+      window.history.pushState(null, '', url);
+    } else {
+      window.history.replaceState(null, '', url);
+    }
+  }, [activeStorylineId, mode, panelEventId, status]);
+
+  // pushState does not emit hashchange, so Back/Forward across our own pushes
+  // arrives here instead.
+  useEffect(() => {
+    const handlePopState = (): void => {
+      const route = parseHash(window.location.hash);
+      if (appliedRouteRef.current && routesEqual(appliedRouteRef.current, route)) {
+        return;
+      }
+      applyRoute(route);
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [applyRoute]);
+
+  /**
    * The soft boundary (Decision #9), split across two map events on purpose.
    *
    * `move` updates inside↔leaving continuously, so the chip warns you while you
@@ -970,12 +1082,14 @@ export default function App() {
               style={{ height: rightColumnHeights.topHeight }}
               className="min-h-0 shrink-0"
             >
-              <ListFallback
+              <StoryNarrative
                 storylineTitle={activeStoryline?.title ?? ''}
                 groups={entryGroups}
                 currentChapterId={currentChapter?.id ?? null}
                 selectedEventId={navigation.selectedEventId}
                 onOpenEntry={handleOpenEntry}
+                onStepInto={handleOpenEntry}
+                reducedMotion={reducedMotion}
               />
             </div>
             <Splitter
@@ -1002,12 +1116,14 @@ export default function App() {
               style={{ width: rightColumnWidths.leftWidth }}
               className="min-h-0 min-w-0 shrink-0"
             >
-              <ListFallback
+              <StoryNarrative
                 storylineTitle={activeStoryline?.title ?? ''}
                 groups={entryGroups}
                 currentChapterId={currentChapter?.id ?? null}
                 selectedEventId={navigation.selectedEventId}
                 onOpenEntry={handleOpenEntry}
+                onStepInto={handleOpenEntry}
+                reducedMotion={reducedMotion}
               />
             </div>
             <Splitter
@@ -1030,12 +1146,14 @@ export default function App() {
           </>
         ) : panelVisibility.eventList ? (
           <div className="min-h-0 flex-1">
-            <ListFallback
+            <StoryNarrative
               storylineTitle={activeStoryline?.title ?? ''}
               groups={entryGroups}
               currentChapterId={currentChapter?.id ?? null}
               selectedEventId={navigation.selectedEventId}
               onOpenEntry={handleOpenEntry}
+              onStepInto={handleOpenEntry}
+              reducedMotion={reducedMotion}
             />
           </div>
         ) : panelVisibility.description ? (
@@ -1103,12 +1221,13 @@ export default function App() {
                 {topBar}
                 {banner}
                 <div className="min-h-0 flex-1">
-                  <ListFallback
+                  <StoryNarrative
                     storylineTitle={activeStoryline?.title ?? ''}
                     groups={entryGroups}
                     currentChapterId={currentChapter?.id ?? null}
                     selectedEventId={navigation.selectedEventId}
                     onOpenEntry={handleOpenEntry}
+                    reducedMotion={reducedMotion}
                   />
                 </div>
                 {showStackedDescription ? (
