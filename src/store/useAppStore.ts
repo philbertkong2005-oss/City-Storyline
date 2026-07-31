@@ -83,6 +83,23 @@ export type LayoutState = {
 
 type AppStatus = 'idle' | 'loading' | 'ready' | 'error';
 
+/**
+ * The front door and the story are two modes of one screen, not two routes.
+ *   chooser → title and card rail over a live map; no side panels
+ *   reading → the storyline itself; panels and timeline present
+ */
+export type AppMode = 'chooser' | 'reading';
+
+/**
+ * Which locality the front door is scoped to, and how close it is to letting go.
+ * `proximity` exists so the chip can warn before it clears — hiding results is
+ * allowed, hiding them silently is not (Decision #10).
+ */
+export type LocalityFilter = {
+  localityId: string;
+  proximity: 'inside' | 'leaving';
+};
+
 const defaultPanels: PanelVisibility = {
   header: true,
   timeline: true,
@@ -168,6 +185,8 @@ function parseStoredLayout(): LayoutState {
 
 type AppStore = {
   status: AppStatus;
+  mode: AppMode;
+  localityFilter: LocalityFilter | null;
   storylines: Storyline[];
   activeStorylineId: string | null;
   events: StoryEvent[];
@@ -179,7 +198,11 @@ type AppStore = {
   panelEventId: string | null;
   layout: LayoutState;
   loadContent: (repository: ContentRepository) => Promise<void>;
-  setActiveStoryline: (storylineId: string) => void;
+  enterStoryline: (storylineId: string) => void;
+  returnToChooser: () => void;
+  applyLocalityFilter: (localityId: string) => void;
+  setLocalityProximity: (proximity: LocalityFilter['proximity']) => void;
+  clearLocalityFilter: () => void;
   setYearFromScrubber: (year: number) => void;
   selectChapterFilter: (chapter: Chapter) => void;
   clearTimeFilter: () => void;
@@ -207,6 +230,8 @@ function persistLayout(layout: LayoutState): void {
 
 export const useAppStore = create<AppStore>((set, get) => ({
   status: 'idle',
+  mode: 'chooser',
+  localityFilter: null,
   storylines: [],
   activeStorylineId: null,
   events: [],
@@ -236,6 +261,8 @@ export const useAppStore = create<AppStore>((set, get) => ({
       const firstStoryline = storylines[0] ?? null;
       set({
         status: 'ready',
+        mode: 'chooser',
+        localityFilter: null,
         storylines,
         activeStorylineId: firstStoryline?.id ?? null,
         events,
@@ -257,16 +284,14 @@ export const useAppStore = create<AppStore>((set, get) => ({
       set({ status: 'error', errorMessage: message });
     }
   },
-  setActiveStoryline(storylineId) {
+  enterStoryline(storylineId) {
     const storyline = get().storylines.find((item) => item.id === storylineId);
     if (!storyline) {
       return;
     }
 
-    // Everything downstream of the storyline is reset, not carried over: a
-    // chapterId from Prague means nothing in Charles IV, and a selected event may
-    // not be in the new storyline at all.
     set((state) => ({
+      mode: 'reading',
       activeStorylineId: storylineId,
       timeFilter: { kind: 'all' },
       panelEventId: null,
@@ -277,6 +302,34 @@ export const useAppStore = create<AppStore>((set, get) => ({
         selectedEventId: null,
       },
     }));
+  },
+  returnToChooser() {
+    // The locality filter is a front-door concept and survives the round trip:
+    // if you narrowed to Prague, picked a storyline, and came back, throwing the
+    // filter away would be losing work you did on purpose.
+    set((state) => ({
+      mode: 'chooser',
+      panelEventId: null,
+      navigation: { ...state.navigation, mode: 'idle', selectedEventId: null },
+    }));
+  },
+  applyLocalityFilter(localityId) {
+    if (!get().localities.some((locality) => locality.id === localityId)) {
+      return;
+    }
+
+    set({ localityFilter: { localityId, proximity: 'inside' } });
+  },
+  setLocalityProximity(proximity) {
+    const current = get().localityFilter;
+    if (!current || current.proximity === proximity) {
+      return;
+    }
+
+    set({ localityFilter: { ...current, proximity } });
+  },
+  clearLocalityFilter() {
+    set({ localityFilter: null });
   },
   setYearFromScrubber(year) {
     set((state) => ({

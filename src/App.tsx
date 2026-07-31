@@ -7,7 +7,7 @@ import {
 } from 'react';
 import type { Map } from 'maplibre-gl';
 
-import { nodeCoordinates, type Chapter } from './data/schema';
+import { nodeCoordinates, type Chapter, type Storyline } from './data/schema';
 import EventMarkers from './components/EventMarkers';
 import EventPanel from './components/EventPanel';
 import IconRail from './components/IconRail';
@@ -18,7 +18,19 @@ import Splitter from './components/Splitter';
 import ChapterBands from './components/Timeline/ChapterBands';
 import Scrubber from './components/Timeline/Scrubber';
 import WindowNote from './components/Timeline/WindowNote';
-import { flyToChapter, flyToCoordinates, flyToLocality } from './lib/camera';
+import LocalityChip from './components/FrontDoor/LocalityChip';
+import StorylineCard from './components/FrontDoor/StorylineCard';
+import StorylineRail from './components/FrontDoor/StorylineRail';
+import {
+  flyToChapter,
+  flyToCoordinates,
+  flyToLocality,
+  flyToOpeningView,
+} from './lib/camera';
+import { getLocalityFor } from './lib/geo';
+import { topGenres } from './lib/genres';
+import { getLocalityProximity } from './lib/localityFilter';
+import { useReducedMotion } from './lib/useReducedMotion';
 import { StaticJsonRepository } from './lib/repository';
 import { useMapHealth } from './lib/useMapHealth';
 import {
@@ -39,6 +51,12 @@ import {
 
 const MIN_RIGHT_PANEL_HEIGHT = 8 * 16;
 const MIN_RIGHT_PANEL_WIDTH = 12 * 16;
+
+/**
+ * How long a pointer must rest on a card before its preview flight launches.
+ * Without it, sweeping the cursor along the rail queues a flight per card.
+ */
+const PREVIEW_DWELL_MS = 300;
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
@@ -197,6 +215,7 @@ function getRightColumnSplitWidths(
 export default function App() {
   const repository = useMemo(() => new StaticJsonRepository(), []);
   const largeScreen = useLargeScreen();
+  const reducedMotion = useReducedMotion();
   const {
     hasFailed,
     bannerMessage,
@@ -228,7 +247,13 @@ export default function App() {
     panelEventId,
     layout,
     loadContent,
-    setActiveStoryline,
+    mode,
+    localityFilter,
+    enterStoryline,
+    returnToChooser,
+    applyLocalityFilter,
+    setLocalityProximity,
+    clearLocalityFilter,
     setYearFromScrubber,
     selectChapterFilter,
     clearTimeFilter,
@@ -252,10 +277,14 @@ export default function App() {
 
   const desktopMapMode = largeScreen && !hasFailed;
   const panelVisibility = layout.panels;
-  const showRail = desktopMapMode;
-  const showRightColumn = desktopMapMode && (panelVisibility.eventList || panelVisibility.description);
-  const showBottomRegion = panelVisibility.timeline || panelVisibility.chapters;
-  const showStackedDescription = !desktopMapMode && panelVisibility.description;
+  // In the chooser the map belongs to the cards: no side panels, no timeline, no
+  // layout rail. They arrive with the storyline.
+  const reading = mode === 'reading';
+  const showRail = desktopMapMode && reading;
+  const showRightColumn =
+    desktopMapMode && reading && (panelVisibility.eventList || panelVisibility.description);
+  const showBottomRegion = reading && (panelVisibility.timeline || panelVisibility.chapters);
+  const showStackedDescription = !desktopMapMode && reading && panelVisibility.description;
   const rightColumnOrientation = layout.rightColumnOrientation;
   const isRightColumnColumns =
     rightColumnOrientation === 'columns' &&
@@ -280,6 +309,43 @@ export default function App() {
     () => getVisibleEntries(resolvedEntries, timeFilter),
     [resolvedEntries, timeFilter],
   );
+
+  /**
+   * Every storyline resolved once for the card rail: counts, span, derived genre,
+   * and which localities it touches. Locality membership is computed from the
+   * entries' coordinates rather than tagged on the storyline (Decision #3) —
+   * Charles IV spans Prague, Karlštejn and Karlovy Vary and has no single home.
+   */
+  const storylineCards = useMemo(
+    () =>
+      storylines.map((storyline) => {
+        const entries = resolveStorylineEntries(storyline, events, visitablePlaces);
+        const localityIds = new Set<string>();
+        for (const { node } of entries) {
+          const locality = getLocalityFor(nodeCoordinates(node), localities);
+          if (locality) {
+            localityIds.add(locality.id);
+          }
+        }
+
+        return {
+          storyline,
+          entryCount: entries.length,
+          span: describeStorylineSpan(storyline),
+          genres: topGenres(entries),
+          localityIds,
+        };
+      }),
+    [events, localities, storylines, visitablePlaces],
+  );
+
+  const visibleCards = localityFilter
+    ? storylineCards.filter((card) => card.localityIds.has(localityFilter.localityId))
+    : storylineCards;
+  const hiddenElsewhere = storylineCards.length - visibleCards.length;
+  const filteredLocality = localityFilter
+    ? localities.find((locality) => locality.id === localityFilter.localityId) ?? null
+    : null;
 
   const chapters = activeStoryline?.chapters ?? [];
   const yearRange = activeStoryline
@@ -355,10 +421,13 @@ export default function App() {
         return;
       }
 
-      const token = issueFlightToken();
-      flyToCoordinates(map, coordinates, localities, token, completeFlight);
+      flyToCoordinates(map, coordinates, localities, {
+        token: issueFlightToken(),
+        instant: reducedMotion,
+        onComplete: completeFlight,
+      });
     },
-    [completeFlight, issueFlightToken, localities, map],
+    [completeFlight, issueFlightToken, localities, map, reducedMotion],
   );
 
   const focusChapterOnMap = useCallback(
@@ -367,26 +436,157 @@ export default function App() {
         return;
       }
 
-      const token = issueFlightToken();
-      flyToChapter(map, chapter, resolvedEntries, localities, token, completeFlight);
+      flyToChapter(map, chapter, resolvedEntries, localities, {
+        token: issueFlightToken(),
+        instant: reducedMotion,
+        onComplete: completeFlight,
+      });
     },
-    [completeFlight, issueFlightToken, localities, map, resolvedEntries],
+    [completeFlight, issueFlightToken, localities, map, reducedMotion, resolvedEntries],
   );
 
   const handleSelectLocality = useCallback(
     (localityId: string) => {
       const locality = localities.find((candidate) => candidate.id === localityId);
-      // The locality *filter* (Decisions #9, #10) is Phase 3; for now a pin click
-      // only travels there.
       if (!map || !locality) {
         return;
       }
 
-      const token = issueFlightToken();
-      flyToLocality(map, locality, token, completeFlight);
+      // Decision #11's other half: a map click sets both camera and filter, where
+      // a card hover only ever moves the camera. Stated as one rule up front
+      // because two-way binding between the same two surfaces oscillates if it is
+      // left to emerge.
+      if (mode === 'chooser') {
+        applyLocalityFilter(localityId);
+      }
+
+      flyToLocality(map, locality, {
+        token: issueFlightToken(),
+        instant: reducedMotion,
+        onComplete: completeFlight,
+      });
     },
-    [completeFlight, issueFlightToken, localities, map],
+    [applyLocalityFilter, completeFlight, issueFlightToken, localities, map, mode, reducedMotion],
   );
+
+  /**
+   * Hover-to-fly, after a dwell delay so sweeping the cursor across the rail does
+   * not launch four flights in a row. Never touches the locality filter.
+   */
+  const previewTimerRef = useRef<number | null>(null);
+
+  const cancelPreview = useCallback(() => {
+    if (previewTimerRef.current !== null) {
+      window.clearTimeout(previewTimerRef.current);
+      previewTimerRef.current = null;
+    }
+  }, []);
+
+  const handlePreviewStart = useCallback(
+    (storyline: Storyline) => {
+      cancelPreview();
+      if (!map) {
+        return;
+      }
+
+      previewTimerRef.current = window.setTimeout(() => {
+        previewTimerRef.current = null;
+
+        // If the storyline opens on the place already on screen, the camera does
+        // not move at all — the card's own hover state is the only feedback, by
+        // design. Flying Prague→Prague would be a pointless twitch.
+        const centre = map.getCenter();
+        const currentLocality = getLocalityFor(
+          { lng: centre.lng, lat: centre.lat },
+          localities,
+        );
+        if (currentLocality?.id === storyline.openingView.localityId) {
+          return;
+        }
+
+        flyToOpeningView(map, storyline.openingView, {
+          token: issueFlightToken(),
+          instant: reducedMotion,
+          onComplete: completeFlight,
+        });
+      }, PREVIEW_DWELL_MS);
+    },
+    [cancelPreview, completeFlight, issueFlightToken, localities, map, reducedMotion],
+  );
+
+  useEffect(() => cancelPreview, [cancelPreview]);
+
+  const handleEnterStoryline = useCallback(
+    (storyline: Storyline) => {
+      cancelPreview();
+      enterStoryline(storyline.id);
+
+      if (map) {
+        flyToOpeningView(map, storyline.openingView, {
+          token: issueFlightToken(),
+          instant: reducedMotion,
+          onComplete: completeFlight,
+        });
+      }
+    },
+    [cancelPreview, completeFlight, enterStoryline, issueFlightToken, map, reducedMotion],
+  );
+
+  const handleReturnHome = useCallback(() => {
+    cancelPreview();
+    returnToChooser();
+  }, [cancelPreview, returnToChooser]);
+
+  /**
+   * The soft boundary (Decision #9), split across two map events on purpose.
+   *
+   * `move` updates inside↔leaving continuously, so the chip warns you while you
+   * are still dragging. `moveend` is the only thing that actually clears the
+   * filter — releasing mid-gesture would fight touch inertia, where one flick
+   * carries the camera far past any boundary and back is not an option.
+   */
+  useEffect(() => {
+    if (!map || mode !== 'chooser' || !localityFilter) {
+      return;
+    }
+
+    const locality = localities.find(
+      (candidate) => candidate.id === localityFilter.localityId,
+    );
+    if (!locality) {
+      return;
+    }
+
+    const measure = () => {
+      const centre = map.getCenter();
+      return getLocalityProximity(
+        { lng: centre.lng, lat: centre.lat },
+        map.getZoom(),
+        locality,
+      );
+    };
+
+    const handleMove = (): void => {
+      const proximity = measure();
+      if (proximity !== 'outside') {
+        setLocalityProximity(proximity);
+      }
+    };
+
+    const handleMoveEnd = (): void => {
+      if (measure() === 'outside') {
+        clearLocalityFilter();
+      }
+    };
+
+    map.on('move', handleMove);
+    map.on('moveend', handleMoveEnd);
+
+    return () => {
+      map.off('move', handleMove);
+      map.off('moveend', handleMoveEnd);
+    };
+  }, [clearLocalityFilter, localities, localityFilter, map, mode, setLocalityProximity]);
 
   const handleYearChange = useCallback(
     (year: number) => {
@@ -414,13 +614,6 @@ export default function App() {
       focusEntryOnMap(resolved);
     },
     [focusEntryOnMap, openPanel],
-  );
-
-  const handleStorylineSelect = useCallback(
-    (storylineId: string) => {
-      setActiveStoryline(storylineId);
-    },
-    [setActiveStoryline],
   );
 
   const handleRetryMap = useCallback(() => {
@@ -605,7 +798,7 @@ export default function App() {
   // Chrome is built once and placed twice: floating over the map when there is a
   // map, and in normal flow in the list fallback, where floating it would bury
   // the only content on screen.
-  const topBar = panelVisibility.header ? (
+  const topBar = !panelVisibility.header ? null : reading ? (
     <header className="pointer-events-auto flex w-fit max-w-full flex-wrap items-center gap-x-5 gap-y-1.5 rounded-[1.25rem] border border-white/50 bg-[#f8f5ef]/75 px-5 py-2.5 shadow-panel backdrop-blur-md">
       <div className="flex min-w-0 items-baseline gap-3">
         <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-slate-500">
@@ -616,49 +809,40 @@ export default function App() {
         </h1>
       </div>
 
-      {/*
-        Phase 1 stand-in for the front door. The card rail, hover-to-fly and
-        locality filter are Phase 3; this exists only so the same node can be
-        read from two storylines, which is what Phase 1 has to prove.
-      */}
-      <div className="flex flex-wrap items-center gap-1.5">
-        {storylines.map((storyline) => {
-          const active = storyline.id === activeStorylineId;
-          return (
-            <button
-              key={storyline.id}
-              type="button"
-              onClick={() => handleStorylineSelect(storyline.id)}
-              aria-pressed={active}
-              className={[
-                'flex items-baseline gap-2 rounded-full border px-3 py-1 text-sm transition',
-                active
-                  ? 'border-slate-900 bg-slate-900 text-[#f8f5ef]'
-                  : 'border-slate-200 bg-white/80 text-slate-800 hover:border-slate-400 hover:bg-white',
-              ].join(' ')}
-            >
-              <span className="font-semibold">{storyline.title}</span>
-              <span
-                className={[
-                  'text-[10px] font-semibold uppercase tracking-[0.16em]',
-                  active ? 'text-[#f8f5ef]/70' : 'text-slate-500',
-                ].join(' ')}
-              >
-                {storyline.type}
-              </span>
-            </button>
-          );
-        })}
-      </div>
-
       {activeStoryline ? (
         <p className="text-xs text-slate-500">
           {resolvedEntries.length} entries · {chapters.length} chapters ·{' '}
           {describeStorylineSpan(activeStoryline)}
         </p>
       ) : null}
+
+      {/*
+        PLAN-V2 puts the home button in the top-right corner, which the map's own
+        zoom controls already occupy. Docking it to the end of this bar keeps it
+        in the top strip without the two fighting for the same pixels.
+      */}
+      <button
+        type="button"
+        onClick={handleReturnHome}
+        className="rounded-full border border-slate-300 bg-white/70 px-3 py-1 text-sm font-semibold text-slate-800 transition hover:border-slate-500 hover:bg-white"
+      >
+        ← All storylines
+      </button>
     </header>
-  ) : null;
+  ) : (
+    <header className="pointer-events-auto flex w-fit max-w-full flex-col gap-0.5 rounded-[1.25rem] border border-white/50 bg-[#f8f5ef]/75 px-5 py-2.5 shadow-panel backdrop-blur-md">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-slate-500">
+        City-Storyline
+      </p>
+      <h1 className="font-display text-xl leading-tight text-slate-950">
+        Enter history from any point of interest.
+      </h1>
+      <p className="text-xs text-slate-500">
+        {storylineCards.length} storylines over one shared pool of events. Hover a
+        card to look, click to read.
+      </p>
+    </header>
+  );
 
   const banner = bannerMessage ? (
     <div className="pointer-events-auto flex w-fit max-w-full flex-wrap items-center gap-3 rounded-[1.25rem] border border-amber-300/80 bg-amber-50/90 px-4 py-2.5 text-sm text-amber-950 shadow-panel backdrop-blur-md">
@@ -685,6 +869,52 @@ export default function App() {
   // Timeline and chapter chips are one bar now rather than two stacked cards.
   // Capped and scrollable so a storyline with many chapters cannot grow the bar
   // until it swallows the map.
+  const chooserRail = reading ? null : (
+    <div className="pointer-events-none flex flex-col gap-2">
+      {filteredLocality && localityFilter ? (
+        <LocalityChip
+          localityName={filteredLocality.name}
+          proximity={localityFilter.proximity}
+          hiddenElsewhere={hiddenElsewhere}
+          onClear={clearLocalityFilter}
+        />
+      ) : null}
+
+      {visibleCards.length > 0 ? (
+        <StorylineRail autoScroll={!reducedMotion}>
+          {visibleCards.map((card) => (
+            <StorylineCard
+              key={card.storyline.id}
+              storyline={card.storyline}
+              entryCount={card.entryCount}
+              span={card.span}
+              genres={card.genres}
+              active={card.storyline.id === activeStorylineId}
+              onEnter={() => handleEnterStoryline(card.storyline)}
+              onPreviewStart={() => handlePreviewStart(card.storyline)}
+              onPreviewEnd={cancelPreview}
+            />
+          ))}
+        </StorylineRail>
+      ) : (
+        /* Decision #10's honest empty state: never a dead end. */
+        <div className="pointer-events-auto flex w-fit max-w-full flex-wrap items-center gap-3 rounded-[1.25rem] border border-white/50 bg-[#f8f5ef]/85 px-5 py-3 text-sm text-slate-700 shadow-panel backdrop-blur-md">
+          <p>
+            No storylines in {filteredLocality?.name ?? 'this area'} —{' '}
+            {hiddenElsewhere} elsewhere.
+          </p>
+          <button
+            type="button"
+            onClick={clearLocalityFilter}
+            className="rounded-full border border-slate-400 px-3 py-1 font-semibold transition hover:bg-white"
+          >
+            Show all
+          </button>
+        </div>
+      )}
+    </div>
+  );
+
   const bottomBar = showBottomRegion ? (
     <div className="pointer-events-auto max-h-[45vh] min-w-0 overflow-y-auto overflow-x-hidden rounded-[1.25rem] border border-white/50 bg-[#f8f5ef]/80 shadow-panel backdrop-blur-md">
       {panelVisibility.timeline ? (
@@ -861,6 +1091,7 @@ export default function App() {
                     {banner}
                   </div>
                   <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 p-3">
+                    {chooserRail}
                     {bottomBar}
                   </div>
                 </div>
@@ -890,6 +1121,7 @@ export default function App() {
                     />
                   </div>
                 ) : null}
+                {chooserRail}
                 {bottomBar}
               </div>
             )}

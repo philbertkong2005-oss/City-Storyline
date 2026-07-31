@@ -1,4 +1,4 @@
-import type { LngLatBoundsLike, Map } from 'maplibre-gl';
+import type { CameraOptions, LngLatBoundsLike, Map } from 'maplibre-gl';
 
 import {
   nodeCoordinates,
@@ -15,6 +15,34 @@ const DEFAULT_EVENT_ZOOM = 15.8;
 
 const MIN_FLIGHT_MS = 1200;
 const MAX_FLIGHT_MS = 3400;
+
+export type FlightOptions = {
+  /** Stale-flight guard: the store's flightToken for this move. */
+  token: number;
+  /**
+   * Reduced motion. Cuts straight to the destination instead of animating —
+   * `jumpTo` rather than `flyTo`, per PLAN-V2's front-door spec.
+   */
+  instant?: boolean;
+  onComplete?: (token: number) => void;
+};
+
+function attachMoveEnd(
+  map: Map,
+  token: number,
+  onComplete?: (token: number) => void,
+): void {
+  if (!onComplete) {
+    return;
+  }
+
+  const handleMoveEnd = (): void => {
+    map.off('moveend', handleMoveEnd);
+    onComplete(token);
+  };
+
+  map.on('moveend', handleMoveEnd);
+}
 
 /**
  * A hop across town and a hop across Bohemia should not take the same time. The
@@ -46,68 +74,89 @@ function arrivalFraming(
   };
 }
 
-function attachMoveEnd(
+/**
+ * One place decides animate-or-jump, so reduced motion cannot be honoured in
+ * three camera helpers and forgotten in a fourth.
+ */
+function moveCamera(
   map: Map,
-  token: number,
-  onComplete?: (token: number) => void,
+  camera: CameraOptions & { center: [number, number] },
+  duration: number,
+  { token, instant, onComplete }: FlightOptions,
 ): void {
-  if (!onComplete) {
+  attachMoveEnd(map, token, onComplete);
+
+  if (instant) {
+    map.jumpTo(camera);
     return;
   }
 
-  const handleMoveEnd = (): void => {
-    map.off('moveend', handleMoveEnd);
-    onComplete(token);
-  };
-
-  map.on('moveend', handleMoveEnd);
+  // No intermediate waypoints and no scripted zoom-out: flyTo's own parabolic
+  // path already arcs high enough on a long hop that `building-extrusions`
+  // (minzoom 13) drops out in the middle and returns on arrival. The city
+  // dissolving and reforming is a consequence of the zoom thresholds, not
+  // something choreographed on top of them.
+  map.flyTo({ ...camera, duration, essential: true });
 }
 
 export function flyToCoordinates(
   map: Map,
   coordinates: Coordinates,
   localities: Locality[],
-  token: number,
-  onComplete?: (token: number) => void,
+  options: FlightOptions,
 ): void {
   const { pitch, bearing } = arrivalFraming(coordinates, localities);
-  const duration = flightDuration(map, coordinates);
-
-  attachMoveEnd(map, token, onComplete);
-  // No intermediate waypoints and no scripted zoom-out: flyTo's own parabolic
-  // path already arcs high enough on a long hop that `building-extrusions`
-  // (minzoom 13) drops out in the middle and returns on arrival. The city
-  // dissolving and reforming is a consequence of the zoom thresholds, not
-  // something choreographed on top of them.
-  map.flyTo({
-    center: [coordinates.lng, coordinates.lat],
-    zoom: DEFAULT_EVENT_ZOOM,
-    pitch,
-    bearing,
-    duration,
-    essential: true,
-  });
+  moveCamera(
+    map,
+    {
+      center: [coordinates.lng, coordinates.lat],
+      zoom: DEFAULT_EVENT_ZOOM,
+      pitch,
+      bearing,
+    },
+    flightDuration(map, coordinates),
+    options,
+  );
 }
 
 /** Lands on a place using its authored framing, rather than on one of its events. */
 export function flyToLocality(
   map: Map,
   locality: Locality,
-  token: number,
-  onComplete?: (token: number) => void,
+  options: FlightOptions,
 ): void {
   const [lng, lat] = locality.defaultView.center;
-  const duration = flightDuration(map, { lng, lat });
+  moveCamera(
+    map,
+    {
+      center: locality.defaultView.center,
+      zoom: locality.defaultView.zoom,
+      pitch: locality.defaultView.pitch,
+      bearing: locality.defaultView.bearing,
+    },
+    flightDuration(map, { lng, lat }),
+    options,
+  );
+}
 
-  attachMoveEnd(map, token, onComplete);
-  map.flyTo({
-    center: locality.defaultView.center,
-    zoom: locality.defaultView.zoom,
-    pitch: locality.defaultView.pitch,
-    bearing: locality.defaultView.bearing,
-    duration,
-    essential: true,
-  });
+/** Lands on a storyline's authored opening shot. */
+export function flyToOpeningView(
+  map: Map,
+  openingView: { center: [number, number]; zoom: number; pitch: number; bearing: number },
+  options: FlightOptions,
+): void {
+  const [lng, lat] = openingView.center;
+  moveCamera(
+    map,
+    {
+      center: openingView.center,
+      zoom: openingView.zoom,
+      pitch: openingView.pitch,
+      bearing: openingView.bearing,
+    },
+    flightDuration(map, { lng, lat }),
+    options,
+  );
 }
 
 /**
@@ -121,8 +170,7 @@ export function flyToChapter(
   chapter: Chapter,
   entries: ResolvedEntry[],
   localities: Locality[],
-  token: number,
-  onComplete?: (token: number) => void,
+  options: FlightOptions,
 ): void {
   const located = entries
     .filter((resolved) => resolved.entry.chapterId === chapter.id)
@@ -136,7 +184,7 @@ export function flyToChapter(
   if (located.length === 1) {
     const [only] = located;
     if (only) {
-      flyToCoordinates(map, only, localities, token, onComplete);
+      flyToCoordinates(map, only, localities, options);
     }
     return;
   }
@@ -158,19 +206,20 @@ export function flyToChapter(
     [maxLng, maxLat],
   ];
 
-  // A chapter can now straddle localities — Charles IV's "King of Bohemia" holds
-  // both Prague and Karlštejn, 30km apart — so framing comes from wherever the
+  // A chapter can straddle localities — Charles IV's "King of Bohemia" holds both
+  // Prague and Karlštejn, 23km apart — so framing comes from wherever the
   // chapter's centre of gravity lands, and fitBounds picks the zoom.
   const centre = { lng: (minLng + maxLng) / 2, lat: (minLat + maxLat) / 2 };
   const { pitch, bearing } = arrivalFraming(centre, localities);
+  const { token, instant, onComplete } = options;
 
   attachMoveEnd(map, token, onComplete);
   map.fitBounds(bounds, {
-    padding: { top: 72, right: 360, bottom: 180, left: 72 },
+    padding: { top: 96, right: 96, bottom: 220, left: 96 },
     maxZoom: 15.4,
     pitch,
     bearing,
-    duration: flightDuration(map, centre),
+    duration: instant ? 0 : flightDuration(map, centre),
     essential: true,
   });
 }
